@@ -1,5 +1,8 @@
 // # 原创 SVG 像素素材；不使用游戏素材、Emoji 或远程图片。
 const paths = {
+  pause: '<path d="M5 4h5v16H5zm9 0h5v16h-5z"/>',
+  play: '<path d="M5 3h3v3h4v3h4v3h4v3h-4v3h-4v3H8v2H5z"/>',
+  phone: '<path d="M6 2h12v20H6zm3 3v12h6V5zm2 14v1h2v-1z" fill-rule="evenodd"/>',
   filter: '<path d="M2 3h20v4h-3v3h-3v3h-2v7l-4 2v-9H8v-3H5V7H2z"/>',
   camera: '<path d="M7 3h10v3h5v15H2V6h5zm2 6v2H7v5h2v2h6v-2h2v-5h-2V9zm2 3h2v3h-2z" fill-rule="evenodd"/>',
   calendar: '<path d="M5 2h3v3h8V2h3v3h3v17H2V5h3zm0 9v8h14v-8zm3 2h3v3H8zm6 0h3v3h-3z" fill-rule="evenodd"/>',

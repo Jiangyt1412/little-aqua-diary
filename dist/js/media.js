@@ -1,4 +1,4 @@
-// # 照片存为 IndexedDB Blob；文字继续使用 localStorage，JSON 备份包含照片。
+// # 照片二进制存入 IndexedDB；文字继续使用 localStorage，JSON 备份包含照片。
 import { uid } from './data.js';
 export const MAX_BACKUP_BYTES = 256 * 1024 * 1024;
 export function referencedPhotos(data) {
@@ -17,12 +17,12 @@ async function decodePhoto(blob) {
     await img.decode();
     if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 100000000) throw new Error('图片尺寸无效或过大。');
     return img;
-  } catch { throw new Error('无法读取照片，请选择 JPG、PNG 或 WebP。'); }
+  } catch { throw new Error(/heic|heif/i.test(blob.type) || /\.(heic|heif)$/i.test(blob.name || '') ? '无法解码这张 HEIC 照片，请使用支持 HEIC 的 Safari，或选择 JPG、PNG。' : '无法读取照片，请选择 JPG、PNG 或 WebP。'); }
   finally { URL.revokeObjectURL(url); }
 }
 export async function preparePhoto(file, kind = 'observation') {
   if (!file || file.size > 20 * 1024 * 1024) throw new Error('每张照片请小于 20 MB。');
-  if (!/^image\/(jpeg|png|webp)$/i.test(file.type) && !(file.type === '' && /\.(jpe?g|png|webp)$/i.test(file.name))) throw new Error('请选择 JPG、PNG 或 WebP 照片。');
+  if (!/^image\/(jpeg|png|webp|heic|heif)$/i.test(file.type) && !(file.type === '' && /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))) throw new Error('请选择 JPG、PNG、WebP 或 HEIC 照片。');
   const img = await decodePhoto(file);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -58,15 +58,24 @@ export class PhotoStore {
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('photos', 'readonly'); const request = tx.objectStore('photos').get(id);
-      request.onsuccess = () => resolve(request.result); request.onerror = () => reject(new Error('照片读取失败。'));
+      request.onsuccess = () => {
+        const asset = request.result;
+        // # 新图片存二进制字节以兼容 WebKit，旧版 Blob 记录仍可直接读取。
+        resolve(asset && !asset.blob && asset.bytes ? { ...asset, blob: new Blob([asset.bytes], { type: asset.mime || 'image/jpeg' }) } : asset);
+      };
+      request.onerror = () => reject(new Error('照片读取失败。'));
     });
   }
   async putMany(assets) {
     if (!assets.length) return;
+    const stored = await Promise.all(assets.map(async asset => {
+      const value = { ...asset, bytes: await asset.blob.arrayBuffer(), mime: asset.blob.type };
+      delete value.blob; return value;
+    }));
     const db = await this.open();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('photos', 'readwrite');
-      assets.forEach(asset => tx.objectStore('photos').put(asset));
+      stored.forEach(asset => tx.objectStore('photos').put(asset));
       tx.oncomplete = resolve; tx.onabort = () => reject(new Error('照片未能保存，浏览器空间不足或权限受限。')); tx.onerror = () => {};
     });
   }

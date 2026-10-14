@@ -1,12 +1,13 @@
+import { legacySeedData as seedData } from './fixtures/legacy-data.mjs'; // # 旧备份回归资料。
 // # 验证新增联动的数量差值、名字保留、不确定数量和原子回滚。
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seedData, validateData, DiaryStore, membersFor, countLabel } from '../dist/js/data.js';
+import { validateData, DiaryStore, membersFor, countLabel } from '../dist/js/data.js';
 import { putAddition, deleteDiaryRecord, removedAdditionProfiles, clearDiaryRecords, resetInventoryBaseline } from '../dist/js/inventory.js';
 const record = (id, species, quantity, containerId = 'turtle') => ({ id, containerId, type: 'add', timestamp: '2026-10-14T00:00:00Z', createdAt: '2026-10-14T00:00:00Z', updatedAt: '2026-10-14T00:00:00Z', details: { species, quantity: String(quantity) }, notes: '' });
 const animal = (d, id) => d.animals.find(a => a.id === id);
 class Storage {
-  constructor() { this.value = null; this.fail = false; }
+  constructor() { this.value = JSON.stringify(seedData()); this.fail = false; }
   getItem() { return this.value; }
   setItem(k, v) { if (this.fail) throw new Error('quota'); this.value = v; }
 }

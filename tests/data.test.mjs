@@ -1,17 +1,18 @@
+import { legacySeedData as seedData } from './fixtures/legacy-data.mjs'; // # 旧备份回归资料。
 // # 验证不可丢失的数据边界：未知数量、存储失败、备份验证与日期筛选。
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DiaryStore, STORAGE_KEY, seedData, validateData, countLabel, membersFor } from '../dist/js/data.js';
+import { DiaryStore, STORAGE_KEY, validateData, countLabel, membersFor } from '../dist/js/data.js';
 import { filterRecords, csvText, statistics, relativeTime, latestRecord, feedingMonth, shiftMonth } from '../dist/js/logic.js';
 import { referencedPhotos } from '../dist/js/media.js';
 process.env.TZ = 'Asia/Shanghai'; // # 固定测试时区，实际网页仍遵循使用者设备时区。
 class MemoryStorage {
-  constructor() { this.values = new Map(); this.fail = false; }
+  constructor() { this.values = new Map([[STORAGE_KEY, JSON.stringify(seedData())]]); this.fail = false; }
   getItem(key) { return this.values.get(key) ?? null; }
   setItem(key, value) { if (this.fail) throw new Error('quota'); this.values.set(key, value); }
 }
 const makeRecord = (id, type, timestamp, details = {}) => ({ id, type, timestamp, containerId: 'turtle', details, notes: '', createdAt: timestamp, updatedAt: timestamp });
-test('初始数量不虚构：两桶未知、区间与少于数量保留', () => {
+test('旧备份数量不虚构：两桶未知、区间与少于数量保留', () => {
   const d = validateData(seedData());
   assert.equal(d.containers.length, 5);
   assert.equal(d.records.length, 0);

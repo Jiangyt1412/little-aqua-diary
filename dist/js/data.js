@@ -1,5 +1,5 @@
 // # 数据层：新增数量保留原有确定程度，旧记录不追溯联动。
-import { mergeLegacyGobyGroups } from './migrations.js';
+import { validDay } from './tasks.js';
 export const STORAGE_KEY = 'little-aqua-diary:v1';
 export const TYPES = {
   feed: { label: '喂食', icon: 'food', color: 'gold' },
@@ -33,34 +33,9 @@ export function membersFor(animal) {
   });
 }
 export function seedData() {
-  return {
-    schemaVersion: 1,
-    gobyGroupMergeVersion: 1,
-    revision: 0,
-    containers: [
-      { id: 'turtle', name: '龟鱼缸', dimensions: '60 × 40 × 34 cm', estimatedVolume: '', type: 'tank', art: 'turtle', notes: '' },
-      { id: 'goby', name: '鲫鱼 / 虾虎鱼缸', dimensions: '50 × 27 × 30 cm', estimatedVolume: '', type: 'tank', art: 'goby', notes: '' },
-      { id: 'parrot', name: '鹦鹉鱼缸', dimensions: '48 × 28.9 × 31.3 cm', estimatedVolume: '', type: 'tank', art: 'parrot', notes: '' },
-      { id: 'shrimp-a', name: '黑壳虾桶 A', dimensions: '', estimatedVolume: '约 12 L', type: 'bucket', art: 'shrimp', notes: '原来约 80 只，当前实际存活数量未知。' },
-      { id: 'shrimp-b', name: '黑壳虾桶 B', dimensions: '', estimatedVolume: '约 12 L', type: 'bucket', art: 'shrimp', notes: '原来约 80 只，当前实际存活数量未知。' }
-    ],
-    animals: [
-      { id: 'a1', containerId: 'turtle', species: '小青龟', displayName: '小青龟', icon: 'turtle', countType: 'exact', countValue: '1', length: '约 4 cm', notes: '' },
-      { id: 'a2', containerId: 'turtle', species: '天使鱼', displayName: '天使鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '约 4 / 3.5 cm', notes: '' },
-      { id: 'a3', containerId: 'turtle', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'range', countMin: 20, countMax: 30, countValue: '', length: '', notes: '' },
-      { id: 'a4', containerId: 'goby', species: '鲫鱼', displayName: '鲫鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '' },
-      { id: 'a5', containerId: 'goby', species: '虾虎鱼', displayName: '虾虎鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '原“虾虎鱼 / 沙塘鳢”个体的物种待确认。', uncertain: true, members: [
-        { id: 'a5_member_1', name: '', length: '', avatarId: '' },
-        { id: 'a6_member_1', name: '', length: '', avatarId: '' }
-      ] },
-      { id: 'a7', containerId: 'parrot', species: '鹦鹉鱼', displayName: '鹦鹉鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '' },
-      { id: 'a8', containerId: 'parrot', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'text', countValue: '少于 10 只', length: '', notes: '' },
-      { id: 'a9', containerId: 'shrimp-a', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'unknown', countValue: '存活数量待重新统计', length: '', notes: '原来约 80 只；当前数量未知。' },
-      { id: 'a10', containerId: 'shrimp-b', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'unknown', countValue: '存活数量待重新统计', length: '', notes: '原来约 80 只；当前数量未知。' }
-    ],
-    records: [],
-    settings: { theme: 'shore', animations: true, reminders: [], lastBackupAt: null }
-  };
+  // # 新日记不预设鱼缸或居民；已有浏览器数据和导入备份不清空。
+  return { schemaVersion: 1, revision: 0, containers: [], animals: [], records: [],
+    settings: { theme: 'shore', animations: true, reminders: [], lastBackupAt: null } };
 }
 
 // # 导入严格验证结构、引用、时间与数值；未知内容不会写入存储。
@@ -94,7 +69,8 @@ export function validateData(input) {
     if (!ids.containers.has(a.containerId)) fail('居民引用了不存在的容器');
     if (!validText(a.species, 100) || !a.species.trim()) fail('物种名称为空');
     if (!['exact', 'estimated', 'range', 'unknown', 'text'].includes(a.countType)) fail('数量类型无效');
-    textFields(a, ['displayName', 'length', 'notes', 'icon']);
+    textFields(a, ['displayName', 'length', 'notes', 'icon', 'templateId']);
+    if (a.templateId && !/^[a-zA-Z0-9_-]{1,100}$/.test(a.templateId)) fail('像素形象引用无效');
     if (a.uncertain !== undefined && typeof a.uncertain !== 'boolean') fail('物种待确认标记无效');
     for (const field of ['knownAdded', 'knownAddedBase', 'inventoryEpoch']) if (a[field] !== undefined && (!Number.isSafeInteger(a[field]) || a[field] < 0)) fail('新增数量累计或盘点标记无效');
     textFields(a, ['originRecordId']);
@@ -107,7 +83,8 @@ export function validateData(input) {
       for (const m of a.members) {
         if (!isObject(m) || !validText(m.id, 150) || !m.id || memberIds.has(m.id)) fail('个体 ID 无效');
         memberIds.add(m.id);
-        textFields(m, ['name', 'length', 'avatarId']);
+        textFields(m, ['name', 'length', 'avatarId', 'templateId']);
+        if (m.templateId && !/^[a-zA-Z0-9_-]{1,100}$/.test(m.templateId)) fail('个体像素形象无效');
         if (m.avatarId && !/^[a-zA-Z0-9_-]{1,150}$/.test(m.avatarId)) fail('头像引用无效');
       }
     }
@@ -120,7 +97,7 @@ export function validateData(input) {
     for (const [key, value] of Object.entries(r.details)) {
       if (['__proto__', 'constructor', 'prototype'].includes(key) || !(validText(value) || (typeof value === 'number' && Number.isFinite(value)) || typeof value === 'boolean')) fail('记录详情包含无效内容');
     }
-    textFields(r, ['notes']);
+    textFields(r, ['notes', 'reminderId']);
     if (r.type === 'test') {
       for (const [key, , , min, max] of WATER_FIELDS) {
         if (r.details[key] !== undefined && (r.details[key] === '' || !Number.isFinite(Number(r.details[key])) || Number(r.details[key]) < min || (max !== null && Number(r.details[key]) > max))) fail('水质数值超出输入范围');
@@ -149,11 +126,17 @@ export function validateData(input) {
   for (const rule of input.settings.reminders) {
     if (!isObject(rule) || !validText(rule.id, 150) || !rule.id || ruleIds.has(rule.id) || !ids.containers.has(rule.containerId) || !Object.hasOwn(TYPES, rule.type) || !Number.isInteger(rule.days) || rule.days < 1 || rule.days > 3650) fail('提醒规则无效');
     ruleIds.add(rule.id);
+    if (rule.status !== undefined && !['active', 'paused'].includes(rule.status)) fail('提醒状态无效');
+    if (rule.time !== undefined && (typeof rule.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(rule.time))) fail('提醒时间无效');
+    if (rule.startDate !== undefined && !validDay(rule.startDate)) fail('提醒开始日期无效');
+    for (const field of ['createdAt', 'updatedAt', 'pausedAt']) if (rule[field] !== undefined && !dateValid(rule[field])) fail('提醒日期无效');
+    if (rule.title !== undefined && !validText(rule.title, 100)) fail('提醒标题无效');
+    if (rule.pauseReason !== undefined && !validText(rule.pauseReason, 1000)) fail('暂停原因过长');
   }
   if (input.settings.lastBackupAt != null && !dateValid(input.settings.lastBackupAt)) fail('备份时间无效');
   const clean = JSON.parse(JSON.stringify(input));
   delete clean.assets; delete clean.exportedAt; // # 照片二进制不进入 localStorage，导入时单独恢复。
-  return mergeLegacyGobyGroups(clean, membersFor);
+  return clean;
 }
 
 // # 写入成功后才更新界面，防止配额不足时产生“已保存”的假象。
