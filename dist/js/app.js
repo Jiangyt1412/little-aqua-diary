@@ -299,7 +299,7 @@ document.addEventListener('change', async event => {
   const field = event.target;
   try {
     if (field.dataset.photoUpload) await uploadPhotos(field);
-    else if (field.dataset.filterField) { view.filters[field.dataset.filterField] = field.value; view.historyLimit = 100; render(); }
+    else if (field.dataset.filterField && field.dataset.filterField !== 'search') { view.filters[field.dataset.filterField] = field.value; view.historyLimit = 100; render(); } // # 搜索由 input 更新，失焦不重建正在点击的记录按钮。
     else if (field.id === 'import-file') { const file = field.files[0]; field.value = ''; await importFile(file); }
     else if (field.closest('#record-form')?.dataset.type === 'add' && ['inventoryAnimalId', 'containerId'].includes(field.name)) {
       const form = field.closest('form'), cid = form.elements.containerId.value;

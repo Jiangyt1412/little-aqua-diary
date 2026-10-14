@@ -15,3 +15,6 @@
 
 /* # 新增联动只显示一行必要说明，长数量标签允许换行。 */
 .inventory-hint{font-size:11px;color:var(--muted);margin:-7px 0 17px}.animal-chip b,.species-count{white-space:normal;overflow-wrap:anywhere}.species-count{flex-shrink:0;max-width:50%;text-align:right}
+
+/* # 小型版本入口供查看更新记录。 */
+.manager-version{display:flex;justify-content:space-between;gap:15px;padding:20px 0 12px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);margin-top:20px}.manager-version a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}

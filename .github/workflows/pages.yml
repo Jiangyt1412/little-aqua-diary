@@ -1,0 +1,62 @@
+# 检查每次发布的版本与资料，再发布 dist；不读取或上传用户浏览器数据。
+name: Check and deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source # 读取发布前版本用于比较。
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node # 项目没有需要安装的前端依赖。
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run application tests
+        run: npm test # 验证数据与数量联动。
+      - name: Check release version and media
+        env:
+          RELEASE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: npm run check:release # 不允许漏写版本、变更或演示素材。
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Configure Pages # 仓库 Pages 需先通过管理设置启用。
+        uses: actions/configure-pages@v5
+      - name: Upload static app
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
