@@ -18,7 +18,7 @@ test('初始数量不虚构：两桶未知、区间与少于数量保留', () =>
   assert.equal(d.animals.filter(a => a.countType === 'unknown').length, 2);
   assert.equal(countLabel(d.animals.find(a => a.id === 'a3')), '约 20–30 只');
   assert.equal(countLabel(d.animals.find(a => a.id === 'a8')), '少于 10 只');
-  assert.equal(d.animals.find(a => a.id === 'a6').uncertain, true);
+  assert.equal(d.animals.find(a => a.id === 'a5').uncertain, true);
 });
 test('存储写入失败不更改内存和已保存数据', () => {
   const storage = new MemoryStorage(), store = new DiaryStore(storage);

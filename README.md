@@ -4,9 +4,9 @@
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.3.0</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.3.1</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-![小小水族日记实际界面，演示数据](dist/media/cover-v1.3.0.jpg)
+![小小水族日记实际界面，演示数据](dist/media/cover-v1.3.1.jpg)
 
 ## 每天常用的，放在手边
 
@@ -21,27 +21,27 @@
 
 ## 看一段实际操作
 
-[▶ 在线播放 v1.3.0 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.3.0.mp4)
+[▶ 在线播放 v1.3.1 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.3.1.mp4)
 
 视频展示首页喂食、换水、喂食月历、居民命名、观察附件、新增数量联动、搜索和备份入口。简介页面使用原生视频播放器，可直接在手机播放。
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.3.0.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.3.0.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.3.0.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
+    <td align="center"><img src="dist/media/phone-home-v1.3.1.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.3.1.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.3.1.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
   </tr>
 </table>
 
-截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。当前像素场景为原创 SVG，尚未收到用于还原的实鱼照片。
+截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。当前像素场景为原创 SVG；按实鱼照片制作的新形象仍在审核，尚未替换到应用。
 
-## 本次更新 · v1.3.0
+## 本次更新 · v1.3.1
 
-- 新增 GitHub Pages 发布流程，通过数据、版本和媒体检查后部署 `dist/`。
-- 参考 [Dayflow](https://github.com/Jiangyt1412/dayflow) 的图文介绍结构，加入封面、三张手机截图和 MP4 实际操作演示。
-- 新增独立项目简介；备份菜单显示版本，并提供更新说明入口。
-- 新增 `CHANGELOG.md`、后续维护约定与发布检查，后续更新需递增版本并说明具体变化。
-- 修复搜索后点击照片时的重复刷新，照片可直接打开。
+- 原“虾虎鱼 / 沙塘鳢”并入“虾虎鱼”，初始数量改为 2 条，仍可分别取名和上传头像。
+- 读取原有本地名单或恢复旧备份时合并这两组，保留数量、名字、头像、备注与历史记录。
+- 原新增生物记录改为关联合并后的组，编辑与撤销仍联动数量。
+- 已改物种名、移缸、删除目标组或超出个体容量的旧名单保持原样；不把管理分组合并当作物种鉴定。
+- 更新本版实际截图、视频和简介。照片形象审核稿尚未应用。
 
 已完成的验证与部署状态见 [验收记录](验收记录.md)。版本历史见 [CHANGELOG](CHANGELOG.md)。
 

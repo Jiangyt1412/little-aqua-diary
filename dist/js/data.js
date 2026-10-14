@@ -1,4 +1,5 @@
 // # 数据层：新增数量保留原有确定程度，旧记录不追溯联动。
+import { mergeLegacyGobyGroups } from './migrations.js';
 export const STORAGE_KEY = 'little-aqua-diary:v1';
 export const TYPES = {
   feed: { label: '喂食', icon: 'food', color: 'gold' },
@@ -34,6 +35,7 @@ export function membersFor(animal) {
 export function seedData() {
   return {
     schemaVersion: 1,
+    gobyGroupMergeVersion: 1,
     revision: 0,
     containers: [
       { id: 'turtle', name: '龟鱼缸', dimensions: '60 × 40 × 34 cm', estimatedVolume: '', type: 'tank', art: 'turtle', notes: '' },
@@ -47,8 +49,10 @@ export function seedData() {
       { id: 'a2', containerId: 'turtle', species: '天使鱼', displayName: '天使鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '约 4 / 3.5 cm', notes: '' },
       { id: 'a3', containerId: 'turtle', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'range', countMin: 20, countMax: 30, countValue: '', length: '', notes: '' },
       { id: 'a4', containerId: 'goby', species: '鲫鱼', displayName: '鲫鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '' },
-      { id: 'a5', containerId: 'goby', species: '虾虎鱼', displayName: '虾虎鱼', icon: 'fish', countType: 'exact', countValue: '1', length: '', notes: '' },
-      { id: 'a6', containerId: 'goby', species: '虾虎鱼 / 沙塘鳢', displayName: '虾虎鱼 / 沙塘鳢', icon: 'fish', countType: 'exact', countValue: '1', length: '', notes: '物种待确认', uncertain: true },
+      { id: 'a5', containerId: 'goby', species: '虾虎鱼', displayName: '虾虎鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '原“虾虎鱼 / 沙塘鳢”个体的物种待确认。', uncertain: true, members: [
+        { id: 'a5_member_1', name: '', length: '', avatarId: '' },
+        { id: 'a6_member_1', name: '', length: '', avatarId: '' }
+      ] },
       { id: 'a7', containerId: 'parrot', species: '鹦鹉鱼', displayName: '鹦鹉鱼', icon: 'fish', countType: 'exact', countValue: '2', length: '', notes: '' },
       { id: 'a8', containerId: 'parrot', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'text', countValue: '少于 10 只', length: '', notes: '' },
       { id: 'a9', containerId: 'shrimp-a', species: '黑壳虾', displayName: '黑壳虾', icon: 'shrimp', countType: 'unknown', countValue: '存活数量待重新统计', length: '', notes: '原来约 80 只；当前数量未知。' },
@@ -66,6 +70,7 @@ const dateValid = v => validText(v, 60) && Number.isFinite(Date.parse(v));
 export function validateData(input) {
   const fail = message => { throw new Error(`备份格式无效：${message}`); };
   if (!isObject(input) || input.schemaVersion !== 1) fail('需要版本 1 的水族日记 JSON 备份');
+  if (input.gobyGroupMergeVersion !== undefined && input.gobyGroupMergeVersion !== 1) fail('名单合并标记无效');
   for (const key of ['containers', 'animals', 'records']) {
     if (!Array.isArray(input[key]) || input[key].length > 100000) fail(`${key} 必须是有效数组`);
   }
@@ -148,7 +153,7 @@ export function validateData(input) {
   if (input.settings.lastBackupAt != null && !dateValid(input.settings.lastBackupAt)) fail('备份时间无效');
   const clean = JSON.parse(JSON.stringify(input));
   delete clean.assets; delete clean.exportedAt; // # 照片二进制不进入 localStorage，导入时单独恢复。
-  return clean;
+  return mergeLegacyGobyGroups(clean, membersFor);
 }
 
 // # 写入成功后才更新界面，防止配额不足时产生“已保存”的假象。
