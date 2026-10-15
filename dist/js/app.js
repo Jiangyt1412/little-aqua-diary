@@ -1,14 +1,16 @@
 // # 应用协调层：本地事务、照片草稿、简化导航和旧备份兼容。
-import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData } from './data.js';
+import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
-import { shell, NAV, managerContent, tasksPanel, petGallery } from './ui.js';
-import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm } from './forms.js';
+import { shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
+import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, resumeTask, tasksCalendar } from './tasks.js';
 import { isUntouchedStarter } from './starter-reset.js';
 import { setupPwa } from './pwa.js';
+import { fetchLatestRelease, prepareAppUpdate, compareAppVersions } from './updates.js';
+import { APP_VERSION } from './version.js';
 import { putAddition, removedAdditionProfiles, deleteDiaryRecord, clearDiaryRecords, resetInventoryBaseline } from './inventory.js';
 let storage;
 try { storage = window.localStorage; }
@@ -20,11 +22,40 @@ const app = document.getElementById('app'), overlay = document.getElementById('o
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
 const quickTapTimes = new Map();
 let afterCreatingContainer = null;
+const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
+let announcedVersion = '';
+function paintUpdates() {
+  const panel = overlay.querySelector('[data-update-panel]');
+  if (panel) panel.outerHTML = updatePanel(updateState);
+}
+async function checkUpdates(quiet = false) {
+  if (['checking', 'installing'].includes(updateState.phase)) return;
+  updateState.phase = 'checking'; updateState.error = ''; paintUpdates();
+  try {
+    updateState.latest = await fetchLatestRelease(); updateState.phase = 'checked';
+    if (quiet && compareAppVersions(updateState.latest.version, APP_VERSION) > 0 && announcedVersion !== updateState.latest.version) {
+      announcedVersion = updateState.latest.version; toast(`发现 v${announcedVersion}，可在管理中更新`);
+    }
+  } catch (error) { updateState.phase = 'error'; updateState.error = error.message || '无法检查版本，请稍后重试。'; }
+  paintUpdates();
+}
+async function installUpdate() {
+  if (!updateState.latest || compareAppVersions(updateState.latest.version, APP_VERSION) <= 0 || ['checking', 'installing'].includes(updateState.phase)) return;
+  modalBusy = true; updateState.phase = 'installing'; updateState.error = '';
+  overlay.querySelectorAll('button').forEach(button => { button.disabled = true; }); paintUpdates();
+  try {
+    await prepareAppUpdate(updateState.latest.version, progress => { updateState.progress = progress; paintUpdates(); });
+    location.reload();
+  } catch (error) {
+    modalBusy = false; updateState.phase = 'error'; updateState.error = error.message || '更新未完成，请保持联网后重试。';
+    overlay.querySelectorAll('button').forEach(button => { button.disabled = false; }); paintUpdates();
+  }
+}
 function render() {
   const focused = document.activeElement, focusId = focused?.id, filterField = focused?.dataset.filterField;
   const selection = focused?.selectionStart;
   app.innerHTML = shell(store.data, view, store.issue);
-  document.title = `${view.page === 'tank' ? store.data.containers.find(c => c.id === view.tankId)?.name || '鱼缸' : NAV.find(([id]) => id === view.page)?.[1] || '首页'} · 小小水族日记`;
+  document.title = `${view.page === 'tank' ? store.data.containers.find(c => c.id === view.tankId)?.name || '鱼缸' : NAV.find(([id]) => id === view.page)?.[1] || '首页'} · ${diaryName(store.data)}`;
   hydratePhotos(app, photos);
   if (!overlay.querySelector('dialog[open]')) {
     const replacement = focusId ? document.getElementById(focusId) : filterField ? app.querySelector(`[data-filter-field="${CSS.escape(filterField)}"]`) : null;
@@ -265,6 +296,11 @@ function viewPhotos(id) {
   openSheet('观察照片', `<div class="photo-gallery">${r.photoIds.map((photoId, i) => `<figure><img data-photo-id="${e(photoId)}" alt="观察照片 ${i + 1}"><button class="text-link" data-action="download-photo" data-id="${e(photoId)}">${icon('export', 14)}保存照片</button></figure>`).join('')}</div>`, 'camera'); hydratePhotos(overlay, photos);
 }
 const actions = {
+  'edit-diary-name': () => {
+    if (openSheet('日记名称', diaryNameForm(store.data), 'pen', true)) {
+      const input = document.getElementById('diary-name-input'); input.focus(); input.select();
+    }
+  },
   close: closeSheet,
   reminders: b => openReminders(b?.dataset.container || ''),
   'add-reminder': b => { if (ensureContainers(id => openSheet('创建提醒', reminderForm(store.data, null, id), 'bell'))) openSheet('创建提醒', reminderForm(store.data, null, b.dataset.container), 'bell'); },
@@ -278,7 +314,9 @@ const actions = {
   'use-pet-template': b => openNewAnimal('', b.dataset.template),
   'install-help': () => openSheet('在 iPhone 上使用', '<ol class="install-steps"><li>用 Safari 打开这个网址。</li><li>点「共享」→「添加到主屏幕」。</li><li>开启「作为网页 App 打开」，点「添加」。</li></ol><p class="form-note">首次联网打开并缓存后，可离线记日记。提醒在 App 内显示；日历提醒需导入日历文件。</p>', 'phone', true),
   'start-empty': () => confirmAction('重新开始？', '所有缸、居民、记录和提醒将清空。请先保留含照片备份。', () => { commitAndFinish(data => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, seedData()); }, '空白日记已准备'); view.residentContainer = ''; view.filters = emptyFilters(); location.hash = 'home'; render(); }, '清空并开始', '<button class="text-link" data-action="export-json">先备份当前数据</button>'),
-  manager: () => openSheet('管理与备份', managerContent(store.data), 'gear', true),
+  'check-update': () => checkUpdates(),
+  'install-update': installUpdate,
+  manager: () => openSheet('管理与备份', managerContent(store.data, updateState), 'gear', true),
   confirm: async () => { if (modalBusy || !pendingConfirm) return; const fn = pendingConfirm; pendingConfirm = null; try { await fn(); } catch (error) { pendingConfirm = fn; toast(error.message, true); } },
   record: b => openRecord(b.dataset.type, b.dataset.container),
   'choose-record': b => chooseRecord(b.dataset.container),
@@ -329,7 +367,8 @@ document.addEventListener('click', async event => {
 });
 document.addEventListener('submit', async event => {
   const form = event.target.closest('[data-form]'); if (!form) return; event.preventDefault();
-  const handlers = { record: saveRecord, container: saveContainer, animal: saveAnimal, member: saveMember, reminder: saveReminder, 'pause-reminder': savePause };
+  const handlers = { record: saveRecord, container: saveContainer, animal: saveAnimal, member: saveMember, reminder: saveReminder, 'pause-reminder': savePause,
+    'diary-name': form => commitAndFinish(data => { data.settings.diaryName = form.elements.diaryName.value.trim(); }, '名称已保存') };
   try { await handlers[form.dataset.form](form); } catch (error) { formError(form, error); }
 });
 document.addEventListener('input', event => {
@@ -380,5 +419,5 @@ if (!store.locked && !store.issue && await isUntouchedStarter(store.data)) {
   try { store.replace(seedData()); } catch (error) { store.issue = error.message; }
 }
 readRoute();
-window.addEventListener('aqua-update-ready', () => toast('新版本已准备，重新打开后生效'));
-setupPwa();
+window.addEventListener('aqua-update-ready', () => checkUpdates(true));
+setupPwa().then(() => checkUpdates(true));

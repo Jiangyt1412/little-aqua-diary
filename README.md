@@ -1,12 +1,12 @@
-<p align="center"><img src="dist/favicon.svg" width="56" alt="小小水族日记"></p>
+<p align="center"><img src="dist/icon-192.png" width="56" alt="小小水族日记"></p>
 
 <h1 align="center">小小水族日记</h1>
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.4.0</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.4.1</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.0.jpg)
+![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.1.jpg)
 
 ## 每天常用的，放在手边
 
@@ -15,37 +15,37 @@
 - **认识每一位居民**：改物种和数量，给非黑壳虾个体取名字、上传头像。
 - **新增自动联动**：新增生物后，缸内名单与数量一起更新。
 - **照片留住观察**：观察记录支持照片，历史支持关键词搜索。
+- **App 内检查更新**：查看当前和新版版本、阅读更新内容，准备完成后直接更新。
 - **备份带走日记**：导出包含记录、居民和照片的 JSON，换网址或手机时恢复。
 
 主界面只有首页、记录、居民三个入口。缸景在创建与编辑缸时选择；提醒收在右上角，保持三个主入口。
 
 ## 看一段实际操作
 
-[▶ 在线播放 v1.4.0 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.0.mp4)
+[▶ 在线播放 v1.4.1 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.1.mp4)
 
-视频展示从空白创建缸、选择孔雀鱼形象、个体命名与头像、提醒完成/暂停、日历导出、观察照片、搜索、月历和备份。简介页面使用原生视频播放器，可直接在手机播放。
+视频展示修改日记名称、从空白创建缸、选择孔雀鱼形象、个体命名与头像、提醒完成/暂停、日历导出、观察照片、搜索、月历、版本检查和备份。简介页面使用原生视频播放器，可直接在手机播放。
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.4.0.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.4.0.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.4.0.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
+    <td align="center"><img src="dist/media/phone-home-v1.4.1.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.4.1.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.4.1.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
   </tr>
 </table>
 
-截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。当前形象沿用照片参考审核稿的原生 SVG，新增孔雀鱼依据用户补充的外观描述；海报组合不代表实际同缸或数量。
+截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。黄金玻璃猫孔雀鱼改用新照片参考的已审核通过的 r2 原生 SVG，显示金黄圆腹、红鳃、黑眼与黄扇尾；用户照片原文件不会公开，海报组合不代表实际同缸或数量。
 
-## 本次更新 · v1.4.0
+## 本次更新 · v1.4.1
 
-- 新日记从空白开始，自行创建缸与居民。旧版完整且从未修改的默认配置转为空白；已有个人资料保留，可通过备份菜单重新开始。
-- 十二种像素形象可选择，加入鲫鱼、黑壳虾，以及按用户描述绘制的黄色尾巴、粉色半透明身体、黑眼孔雀鱼。选择该孔雀鱼创建时建议 4 条，可修改；不会自动加入初始日记。
-- 四款可选空缸背景。生物标签和默认头像使用选择的像素形象，个体仍可命名、改形象和上传照片。
-- 创建喂食、吸便、换水、加水重复提醒；完成可记录维护，暂停原因保存在备份，随时恢复。
-- 导出标准 .ics 日历文件。日历是快照，App 暂停或修改任务不会自动修改已导入日历。
-- 增加主屏幕安装图标、manifest 和离线缓存；首次联网缓存后可离线记录与查看已存照片。
-- HEIC 在支持解码的浏览器中转 JPEG 保存；不支持时提示选择兼容图片。
+- 左上角名称可直接点击编辑，刷新与备份恢复后保留；长名称省略显示，保持右侧按钮可用。
+- 黄金玻璃猫孔雀鱼按新照片调整为金黄身体与扇尾、红色鳃部、黑眼睛和圆腹，保持与缸景一致的像素尺度。缸景、标签和默认头像使用同一形象；原名字、数量与已上传头像保留。
+- 「管理与备份」显示当前版本，支持检查新版、查看更新内容，并在新版准备完成后自动重开。
+- 下载失败、无效发布信息或版本不一致时保留旧版，可重新联网后重试；更新不清理日记、居民、任务或照片。
+- 统一 App 发布 JSON、应用版本、缓存版本与更新记录；增加后续发布的元数据检查。
+- 更新海报、实际界面截图与操作视频。主屏幕与网页图标采用用户指定的海边水族屋像素图，去除外围白边。
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.0.png)
+![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.1.png)
 
 已完成的验证与部署状态见 [验收记录](验收记录.md)。版本历史见 [CHANGELOG](CHANGELOG.md)。
 
@@ -83,3 +83,9 @@ npm run check:release # 核对版本、变更记录和当前版本的截图及�
 Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「作为网页 App 打开」再添加。先成功联网打开一次，缓存完成后可离线使用。设置里的安装提示也能查看步骤。[Apple 官方说明](https://support.apple.com/zh-cn/guide/iphone/iphea86e5236/ios)
 
 提醒在 App 内显示。可导出日历文件，再作为附件从 Apple「邮件」打开导入日历；是否直接从下载文件导入，以设备实际界面为准。App 的暂停不会自动修改导入后的日历。[Apple 日历说明](https://support.apple.com/zh-cn/guide/iphone/ipha0d932e96/ios)
+
+## 更新 App
+
+右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
+
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.4.1 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

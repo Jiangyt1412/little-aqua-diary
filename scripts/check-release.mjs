@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { APP_VERSION } from '../dist/js/version.js';
+import { APP_VERSION, RELEASE_DATE, RELEASE_NOTES } from '../dist/js/version.js';
 import { validateRelease } from './release-validation.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = name => fs.readFile(path.join(root, name), 'utf8');
@@ -37,12 +37,15 @@ const intro = await read('dist/intro.html');
 const introVersions = [...intro.matchAll(/data-version>v([^<]+)/g)].map(match => match[1]);
 if (!introVersions.length || introVersions.some(version => version !== APP_VERSION)) throw new Error('项目简介版本不一致');
 if (!(await read('dist/sw.js')).includes('`${CACHE_PREFIX}v' + APP_VERSION + '`')) throw new Error('离线缓存版本未同步');
+if (!(await read('dist/sw.js')).includes("const VERSION = '" + APP_VERSION + "'")) throw new Error('缓存回复的更新版本未同步');
+const release = JSON.parse(await read('dist/release.json'));
+if (release.version !== APP_VERSION || release.date !== RELEASE_DATE || JSON.stringify(release.notes) !== JSON.stringify(RELEASE_NOTES)) throw new Error('App 检查更新使用的发布信息不一致');
 const manifest = JSON.parse(await read('dist/manifest.webmanifest'));
 if (manifest.scope !== './' || manifest.start_url !== './#home' || manifest.display !== 'standalone') throw new Error('主屏幕安装路径无效');
 for (const [filename, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['apple-touch-icon.png', 180]]) {
   const bytes = await fs.readFile(path.join(root, 'dist', filename));
   if (!bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) || bytes.readUInt32BE(16) !== size || bytes.readUInt32BE(20) !== size) throw new Error(`安装图标尺寸无效：${filename}`);
 }
-for (const filename of ['dist/studio.css', 'dist/js/pwa.js', 'dist/js/pets.js', 'dist/js/habitats.js', 'dist/js/tasks.js']) await fs.access(path.join(root, filename));
+for (const filename of ['dist/studio.css', 'dist/js/pwa.js', 'dist/js/updates.js', 'dist/js/pets.js', 'dist/js/habitats.js', 'dist/js/tasks.js']) await fs.access(path.join(root, filename));
 for (const filename of ['dist/intro.html', 'dist/intro.css', 'dist/js/intro.js', 'dist/.nojekyll', 'AGENTS.md', '.github/workflows/pages.yml']) await fs.access(path.join(root, filename));
 console.log(`Release v${APP_VERSION} OK: versions, changelog, screenshots, pixel poster, MP4 demo and PWA resources`);

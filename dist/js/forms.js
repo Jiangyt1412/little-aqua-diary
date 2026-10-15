@@ -1,5 +1,5 @@
 // # 常用操作只记时间，编辑表单保留旧版数据；昵称和头像单独编辑。
-import { TYPES, WATER_FIELDS, countLabel } from './data.js';
+import { TYPES, WATER_FIELDS, countLabel, diaryName, DIARY_NAME_MAX } from './data.js';
 import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
@@ -12,6 +12,10 @@ export const selectField = (label, name, items, selected) => `<label class="fiel
 const text = 'type="text" maxlength="300"';
 const number = 'type="number" step="any" inputmode="decimal" min="0.001"';
 export const formFooter = (label = '保存', left = '') => `<div class="form-error" role="alert" hidden></div><footer class="sheet-footer">${left || '<button type="button" class="button secondary" data-action="close">取消</button>'}<button type="submit" class="button primary">${icon('check', 16)}${label}</button></footer>`;
+// # 单字段编辑，不改变首页标题、缸名或任何居民资料。
+export function diaryNameForm(data) {
+  return `<form data-form="diary-name">${field('日记名称', 'diaryName', diaryName(data), `id="diary-name-input" type="text" maxlength="${DIARY_NAME_MAX}" required autocomplete="off"`)}${formFooter()}</form>`;
+}
 export function photoFields(ids = [], kind = 'observation') {
   const avatar = kind === 'avatar';
   return `<div class="photo-editor" data-photo-kind="${kind}"><div class="photo-drafts">${ids.map((id, i) => `<div class="photo-draft"><img data-photo-id="${e(id)}" alt="${avatar ? '头像' : `观察照片 ${i + 1}`}"/><button type="button" class="photo-remove" aria-label="移除照片 ${i + 1}" data-action="remove-draft-photo" data-id="${e(id)}">${icon('close', 12)}</button></div>`).join('')}</div><label class="photo-upload">${icon('camera', 19)}<span>${avatar ? (ids.length ? '更换头像' : '上传头像') : '添加照片'}</span><input type="file" name="photo-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" ${avatar ? '' : 'multiple'} data-photo-upload="${kind}"></label><span class="photo-upload-status" role="status"></span></div>`;

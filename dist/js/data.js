@@ -1,6 +1,9 @@
 // # 数据层：新增数量保留原有确定程度，旧记录不追溯联动。
 import { validDay } from './tasks.js';
 export const STORAGE_KEY = 'little-aqua-diary:v1';
+// # 名称是可选设置，旧备份不需迁移；自定义名称随完整 JSON 备份保留。
+export const DIARY_NAME_MAX = 24;
+export const diaryName = data => data.settings.diaryName || '我的水族日记';
 export const TYPES = {
   feed: { label: '喂食', icon: 'food', color: 'gold' },
   siphon: { label: '吸便', icon: 'clean', color: 'mint' },
@@ -122,6 +125,7 @@ export function validateData(input) {
     }
   }
   if (!isObject(input.settings) || !['shore', 'lagoon'].includes(input.settings.theme) || typeof input.settings.animations !== 'boolean' || !Array.isArray(input.settings.reminders)) fail('设置无效');
+  if (input.settings.diaryName !== undefined && (!validText(input.settings.diaryName, DIARY_NAME_MAX) || !input.settings.diaryName.trim())) fail('日记名称须为 1 至 24 个字符');
   const ruleIds = new Set();
   for (const rule of input.settings.reminders) {
     if (!isObject(rule) || !validText(rule.id, 150) || !rule.id || ruleIds.has(rule.id) || !ids.containers.has(rule.containerId) || !Object.hasOwn(TYPES, rule.type) || !Number.isInteger(rule.days) || rule.days < 1 || rule.days > 3650) fail('提醒规则无效');
