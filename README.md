@@ -4,9 +4,9 @@
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.4.1</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.4.2</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.1.jpg)
+![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.2.jpg)
 
 ## 每天常用的，放在手边
 
@@ -22,30 +22,27 @@
 
 ## 看一段实际操作
 
-[▶ 在线播放 v1.4.1 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.1.mp4)
+[▶ 在线播放 v1.4.2 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.2.mp4)
 
 视频展示修改日记名称、从空白创建缸、选择孔雀鱼形象、个体命名与头像、提醒完成/暂停、日历导出、观察照片、搜索、月历、版本检查和备份。简介页面使用原生视频播放器，可直接在手机播放。
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.4.1.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.4.1.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.4.1.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
+    <td align="center"><img src="dist/media/phone-home-v1.4.2.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.4.2.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.4.2.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
   </tr>
 </table>
 
 截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。黄金玻璃猫孔雀鱼改用新照片参考的已审核通过的 r2 原生 SVG，显示金黄圆腹、红鳃、黑眼与黄扇尾；用户照片原文件不会公开，海报组合不代表实际同缸或数量。
 
-## 本次更新 · v1.4.1
+## 本次更新 · v1.4.2
 
-- 左上角名称可直接点击编辑，刷新与备份恢复后保留；长名称省略显示，保持右侧按钮可用。
-- 黄金玻璃猫孔雀鱼按新照片调整为金黄身体与扇尾、红色鳃部、黑眼睛和圆腹，保持与缸景一致的像素尺度。缸景、标签和默认头像使用同一形象；原名字、数量与已上传头像保留。
-- 「管理与备份」显示当前版本，支持检查新版、查看更新内容，并在新版准备完成后自动重开。
-- 下载失败、无效发布信息或版本不一致时保留旧版，可重新联网后重试；更新不清理日记、居民、任务或照片。
-- 统一 App 发布 JSON、应用版本、缓存版本与更新记录；增加后续发布的元数据检查。
-- 更新海报、实际界面截图与操作视频。主屏幕与网页图标采用用户指定的海边水族屋像素图，去除外围白边。
+- 微调主屏幕图标中小狗的暖黄毛色，使其柔和一些，保留原有背景配色和无白边方形画面，主屏幕与网页图标同步。
+- 修正刚打开就刷新时，缓存注册已取消却继续发起启动版本检查的行为；手动检查更新继续可用。
+- 更新版本、说明、当前界面截图、居民海报与操作视频。
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.1.png)
+![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.2.png)
 
 已完成的验证与部署状态见 [验收记录](验收记录.md)。版本历史见 [CHANGELOG](CHANGELOG.md)。
 
@@ -88,4 +85,4 @@ Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「�
 
 右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
 
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.4.1 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.4.2 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

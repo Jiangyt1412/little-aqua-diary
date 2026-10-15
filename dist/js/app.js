@@ -420,4 +420,5 @@ if (!store.locked && !store.issue && await isUntouchedStarter(store.data)) {
 }
 readRoute();
 window.addEventListener('aqua-update-ready', () => checkUpdates(true));
-setupPwa().then(() => checkUpdates(true));
+// # 页面重开导致注册取消时，不在失效页面继续发起启动检查。
+setupPwa().then(registration => { if (registration) checkUpdates(true); });
