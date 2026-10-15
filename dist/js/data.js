@@ -86,9 +86,15 @@ export function validateData(input) {
       for (const m of a.members) {
         if (!isObject(m) || !validText(m.id, 150) || !m.id || memberIds.has(m.id)) fail('个体 ID 无效');
         memberIds.add(m.id);
-        textFields(m, ['name', 'length', 'avatarId', 'templateId']);
+        textFields(m, ['name', 'length', 'avatarId', 'avatarSourceId', 'templateId']);
         if (m.templateId && !/^[a-zA-Z0-9_-]{1,100}$/.test(m.templateId)) fail('个体像素形象无效');
         if (m.avatarId && !/^[a-zA-Z0-9_-]{1,150}$/.test(m.avatarId)) fail('头像引用无效');
+        // # 原取景副本与裁剪参数可随备份恢复；旧头像没有这些字段仍兼容。
+        if (m.avatarSourceId && (!m.avatarId || !/^[a-zA-Z0-9_-]{1,150}$/.test(m.avatarSourceId))) fail('头像原图引用无效');
+        if (m.avatarCrop !== undefined && (!m.avatarId || !m.avatarSourceId || !isObject(m.avatarCrop)
+          || !['x', 'y', 'zoom', 'rotation'].every(key => Number.isFinite(m.avatarCrop[key]))
+          || m.avatarCrop.x < 0 || m.avatarCrop.x > 1 || m.avatarCrop.y < 0 || m.avatarCrop.y > 1
+          || m.avatarCrop.zoom < 1 || m.avatarCrop.zoom > 6 || ![0, 90, 180, 270].includes(m.avatarCrop.rotation))) fail('头像裁剪参数无效');
       }
     }
   }

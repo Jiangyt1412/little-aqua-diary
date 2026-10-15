@@ -4,13 +4,13 @@ export const MAX_BACKUP_BYTES = 256 * 1024 * 1024;
 export function referencedPhotos(data) {
   return [...new Set([
     ...data.records.flatMap(r => r.photoIds || []),
-    ...data.animals.flatMap(a => (a.members || []).map(m => m.avatarId).filter(Boolean))
+    ...data.animals.flatMap(a => (a.members || []).flatMap(m => [m.avatarId, m.avatarSourceId]).filter(Boolean))
   ])];
 }
 const blobToDataURL = blob => new Promise((resolve, reject) => {
   const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('照片读取失败。')); reader.readAsDataURL(blob);
 });
-async function decodePhoto(blob) {
+export async function decodePhoto(blob) {
   const url = URL.createObjectURL(blob);
   try {
     const img = new Image(); img.src = url;
@@ -125,7 +125,10 @@ export async function prepareRestore(raw, data) {
   }
   const restored = structuredClone(data);
   restored.records.forEach(r => { if (r.photoIds) r.photoIds = r.photoIds.map(id => mapping.get(id)); });
-  restored.animals.forEach(a => { a.members?.forEach(m => { if (m.avatarId) m.avatarId = mapping.get(m.avatarId); }); });
+  restored.animals.forEach(a => { a.members?.forEach(m => {
+    if (m.avatarId) m.avatarId = mapping.get(m.avatarId);
+    if (m.avatarSourceId) m.avatarSourceId = mapping.get(m.avatarSourceId);
+  }); });
   return { data: restored, assets: prepared };
 }
 export async function hydratePhotos(root, photos) {

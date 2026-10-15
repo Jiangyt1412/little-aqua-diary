@@ -18,7 +18,7 @@ if (base && !/^0+$/.test(base)) {
   previousVersion = JSON.parse(execFileSync('git', ['show', `${base}:package.json`], { cwd: root, encoding: 'utf8' })).version;
 }
 validateRelease({ version: metadata.version, appVersion: APP_VERSION, htmlVersion, readme, changelog, previousVersion });
-for (const name of ['cover', 'phone-home', 'phone-tank', 'phone-residents']) {
+for (const name of ['cover', 'phone-home', 'phone-tank', 'phone-residents', 'phone-avatar']) {
   const relative = `dist/media/${name}-v${APP_VERSION}.jpg`;
   const bytes = await fs.readFile(path.join(root, relative));
   if (bytes.length < 1000 || bytes[0] !== 0xff || bytes[1] !== 0xd8) throw new Error(`演示截图缺失或不是 JPEG：${relative}`);
@@ -46,6 +46,6 @@ for (const [filename, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['
   const bytes = await fs.readFile(path.join(root, 'dist', filename));
   if (!bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) || bytes.readUInt32BE(16) !== size || bytes.readUInt32BE(20) !== size) throw new Error(`安装图标尺寸无效：${filename}`);
 }
-for (const filename of ['dist/studio.css', 'dist/js/pwa.js', 'dist/js/updates.js', 'dist/js/pets.js', 'dist/js/habitats.js', 'dist/js/tasks.js']) await fs.access(path.join(root, filename));
+for (const filename of ['dist/studio.css', 'dist/js/pwa.js', 'dist/js/updates.js', 'dist/js/pets.js', 'dist/js/avatar-crop.js', 'dist/js/habitats.js', 'dist/js/tasks.js']) await fs.access(path.join(root, filename));
 for (const filename of ['dist/intro.html', 'dist/intro.css', 'dist/js/intro.js', 'dist/.nojekyll', 'AGENTS.md', '.github/workflows/pages.yml']) await fs.access(path.join(root, filename));
 console.log(`Release v${APP_VERSION} OK: versions, changelog, screenshots, pixel poster, MP4 demo and PWA resources`);

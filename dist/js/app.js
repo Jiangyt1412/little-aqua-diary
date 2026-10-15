@@ -5,6 +5,7 @@ import { icon } from './art.js';
 import { shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
+import { editAvatar } from './avatar-crop.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, resumeTask, tasksCalendar } from './tasks.js';
 import { isUntouchedStarter } from './starter-reset.js';
@@ -68,7 +69,7 @@ function toast(message, error = false, undo = '') {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { root.innerHTML = ''; undoRecordId = null; }, undo || error ? 6500 : 2800);
 }
 function discardPhotoDraft() {
-  if (photoDraft) photoDraft.urls.forEach(url => URL.revokeObjectURL(url));
+  if (photoDraft) { photoDraft.abort.abort(); photoDraft.urls.forEach(url => URL.revokeObjectURL(url)); }
   photoDraft = null;
 }
 function closeSheet() {
@@ -102,8 +103,9 @@ function ensureContainers(onCreated = null) {
   if (store.data.containers.length) return true;
   openSheet('添加缸', containerForm(null), 'tank'); afterCreatingContainer = onCreated; toast('先添加一个缸'); return false;
 }
-function initializePhotoDraft(ids = [], kind = 'observation') {
-  photoDraft = { ids: [...ids], kind, assets: new Map(), urls: new Map(), busy: false };
+function initializePhotoDraft(ids = [], kind = 'observation', member = {}) {
+  photoDraft = { ids: [...ids], kind, assets: new Map(), urls: new Map(), busy: false, abort: new AbortController(),
+    avatarSourceId: member.avatarSourceId || '', avatarCrop: member.avatarCrop ? { ...member.avatarCrop } : null };
   hydratePhotos(overlay, photos);
 }
 function paintPhotoDraft() {
@@ -125,6 +127,12 @@ async function uploadPhotos(input) {
   const status = overlay.querySelector('.photo-upload-status'); if (status) status.textContent = '处理照片…';
   const submit = overlay.querySelector('button[type="submit"]'); if (submit) submit.disabled = true;
   try {
+    if (draft.kind === 'avatar') {
+      // # 完整取景只存压缩副本；裁剪与主表单确认前均不写入持久存储。
+      const source = await preparePhoto(files[0]);
+      if (photoDraft === draft) await cropDraftAvatar(draft, source, true);
+      return;
+    }
     const prepared = [];
     for (const file of files.slice(0, cap)) prepared.push(await preparePhoto(file, draft.kind));
     if (photoDraft !== draft) return;
@@ -137,11 +145,31 @@ async function uploadPhotos(input) {
     if (photoDraft === draft) { const current = overlay.querySelector('.photo-upload-status'); if (current) current.textContent = ''; if (submit) submit.disabled = false; input.value = ''; }
   }
 }
+async function cropDraftAvatar(draft, source, isNew = false) {
+  if (!source?.blob) throw new Error('头像不可读取，请重新上传照片。');
+  const result = await editAvatar(source, isNew ? {} : draft.avatarCrop || {}, { signal: draft.abort.signal });
+  if (!result || photoDraft !== draft) return;
+  const asset = { id: uid('photo'), blob: result.blob, name: source.name || '头像', createdAt: new Date().toISOString() };
+  if (isNew) draft.assets.set(source.id, source);
+  draft.assets.set(asset.id, asset); draft.urls.set(asset.id, URL.createObjectURL(asset.blob));
+  draft.ids = [asset.id]; draft.avatarSourceId = source.id; draft.avatarCrop = result.crop; paintPhotoDraft();
+}
+async function editDraftAvatar() {
+  const draft = photoDraft; if (!draft || draft.kind !== 'avatar' || !draft.ids.length || draft.busy || modalBusy) return;
+  draft.busy = true;
+  const submit = overlay.querySelector('button[type="submit"]'); if (submit) submit.disabled = true;
+  try {
+    const id = draft.avatarSourceId || draft.ids[0], source = draft.assets.get(id) || await photos.get(id);
+    if (photoDraft === draft) await cropDraftAvatar(draft, source);
+  } catch (error) { if (photoDraft === draft) formError(overlay.querySelector('form'), error); }
+  finally { draft.busy = false; if (photoDraft === draft && submit) submit.disabled = false; }
+}
 // # 新照片先写入，元数据成功后才显示保存；失败清理新增照片并保留旧数据。
 async function saveWithPhotos(form, mutator, message) {
   const draft = photoDraft;
   if (modalBusy || draft?.busy) throw new Error('照片仍在处理，请稍等。');
-  const assets = draft ? draft.ids.map(id => draft.assets.get(id)).filter(Boolean) : [];
+  const ids = draft ? [...new Set([...draft.ids, ...(draft.kind === 'avatar' && draft.ids.length && draft.avatarSourceId ? [draft.avatarSourceId] : [])])] : [];
+  const assets = draft ? ids.map(id => draft.assets.get(id)).filter(Boolean) : [];
   modalBusy = true; overlay.querySelectorAll('button').forEach(b => { b.disabled = true; });
   try { await photos.putMany(assets); store.commit(mutator); }
   catch (error) { try { await photos.remove(assets.map(a => a.id)); } catch {} throw error; }
@@ -235,14 +263,19 @@ function saveAnimal(form) {
 function openMember(button) {
   const animal = store.data.animals.find(a => a.id === button.dataset.animal); if (!animal) return;
   const members = membersFor(animal), index = members.findIndex(m => m.id === button.dataset.member), member = members[index]; if (!member) return;
-  if (openSheet('名字与头像', memberForm(animal, member, index), animal.icon || 'fish')) initializePhotoDraft(member.avatarId ? [member.avatarId] : [], 'avatar');
+  if (openSheet('名字与头像', memberForm(animal, member, index), animal.icon || 'fish')) initializePhotoDraft(member.avatarId ? [member.avatarId] : [], 'avatar', member);
 }
 async function saveMember(form) {
-  const fd = new FormData(form), avatarId = photoDraft?.ids[0] || '';
+  const fd = new FormData(form), avatarId = photoDraft?.ids[0] || '', avatarSourceId = photoDraft?.avatarSourceId || '', avatarCrop = photoDraft?.avatarCrop;
   await saveWithPhotos(form, data => {
     const animal = data.animals.find(a => a.id === form.dataset.animal); if (!animal) throw new Error('这个物种已被其他窗口删除。');
     const members = membersFor(animal), member = members.find(m => m.id === form.dataset.member); if (!member) throw new Error('数量已有变化，这个个体已被移除。');
     member.name = String(fd.get('name') || '').trim(); member.length = String(fd.get('length') || '').trim(); member.avatarId = avatarId; member.templateId = String(fd.get('templateId') || ''); animal.members = members;
+    if (avatarId && avatarSourceId) {
+      member.avatarSourceId = avatarSourceId;
+      if (avatarCrop) member.avatarCrop = { ...avatarCrop }; else delete member.avatarCrop;
+    }
+    else { delete member.avatarSourceId; delete member.avatarCrop; }
   }, '名字与头像已保存');
 }
 function openNewAnimal(containerId = '', templateId = '') {
@@ -352,7 +385,13 @@ const actions = {
   'edit-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) openSheet('物种与数量', animalForm(store.data, a, a.containerId), a.icon || 'fish'); },
   'delete-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) confirmAction(`删除${a.species}？`, '个体名字和头像引用将移除，历史维护记录保留。', () => commitAndFinish(d => { d.animals = d.animals.filter(a => a.id !== b.dataset.id); }, '已移除'), '确定删除'); },
   'edit-member': openMember,
-  'remove-draft-photo': b => { if (!photoDraft || photoDraft.busy || modalBusy) return; photoDraft.ids = photoDraft.ids.filter(id => id !== b.dataset.id); paintPhotoDraft(); },
+  'edit-avatar-crop': editDraftAvatar,
+  'remove-draft-photo': b => {
+    if (!photoDraft || photoDraft.busy || modalBusy) return;
+    photoDraft.ids = photoDraft.ids.filter(id => id !== b.dataset.id);
+    if (photoDraft.kind === 'avatar') { photoDraft.avatarSourceId = ''; photoDraft.avatarCrop = null; }
+    paintPhotoDraft();
+  },
   'view-photos': b => viewPhotos(b.dataset.id),
   'download-photo': async b => { const asset = await photos.get(b.dataset.id); if (!asset?.blob) throw new Error('照片不可读取。'); const url = await photos.url(b.dataset.id), a = document.createElement('a'); a.href = url; a.download = `观察照片-${b.dataset.id.slice(-8)}.jpg`; document.body.append(a); a.click(); a.remove(); },
   'export-json': exportJSON,

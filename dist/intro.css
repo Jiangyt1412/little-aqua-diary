@@ -6,3 +6,6 @@
 
 /* # 像素形象海报与 iPhone 使用提示沿用简介的留白和色彩。 */
 .pixel-section{padding:65px 0}.pixel-poster{display:block;width:100%;height:auto;border-radius:18px;border:1px solid #dfe7d8}.iphone-panel{margin:0 0 65px;padding:30px;background:#eef3e7;border:1px solid #dfe7d8;border-radius:18px}.iphone-panel p{font-size:14px;line-height:1.9;color:#73816c;margin:14px 0}.iphone-panel .quiet-link{display:inline-block;margin-top:10px}@media(max-width:700px){.pixel-section{padding:42px 0}.iphone-panel{padding:24px;margin-bottom:42px}.iphone-panel p{font-size:12px}}
+
+/* # 当前版头像裁剪使用真实演示截图，图片与文字在窄屏自然换行。 */
+.avatar-feature{display:flex;align-items:center;justify-content:center;gap:60px;margin:75px 0;padding:36px 24px;background:#edf2e7;border-radius:22px}.avatar-feature figure{width:min(240px,100%);flex-shrink:0}.avatar-feature img{display:block;width:100%;height:auto;border-radius:18px;border:1px solid #d7e0ce}.avatar-feature .section-heading{max-width:350px;margin:0}@media(max-width:650px){.avatar-feature{flex-direction:column-reverse;gap:28px;margin:48px 0;padding:30px 18px}.avatar-feature .section-heading{width:100%}.avatar-feature figure{width:220px}}
