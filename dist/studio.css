@@ -68,3 +68,6 @@ html:not(.keyboard-nav) .pet-option input:focus-visible+span,html:not(.keyboard-
 .header-inner .brand .diary-name{text-wrap:balance}
 /* # 显式键盘模式同样覆盖 WebKit 的平台焦点判定差异。 */
 html.keyboard-nav :is(button,a,summary,canvas):focus{outline:3px solid var(--accent);outline-offset:3px}
+
+/* # 所有连线处在卡片底层；用边距居中，避免每个事件的 transform 建立独立绘制层。 */
+.history-timeline-viewport,.timeline-lane{isolation:isolate}.timeline-event{transform:none;margin-left:-37px}.timeline-track,.timeline-event::before{z-index:0;pointer-events:none}.event-dot{z-index:1}.timeline-event>button{position:relative;z-index:2}.event-photos{background:var(--surface);border-radius:8px}

@@ -7,7 +7,7 @@ import { recordForm, collectRecord, containerForm, animalForm, countFields, memb
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
-import { positionTimelines } from './timeline.js';
+import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
@@ -494,6 +494,7 @@ function fitVisibleViewport() {
   const viewport=window.visualViewport, height=viewport?.height || innerHeight;
   document.documentElement.style.setProperty('--visual-viewport-height',`${height}px`);
   document.documentElement.style.setProperty('--keyboard-inset',`${Math.max(0,innerHeight-height-(viewport?.offsetTop||0))}px`);
+  fitTimelineViewports(app);
 }
 window.visualViewport?.addEventListener('resize',fitVisibleViewport);
 window.visualViewport?.addEventListener('scroll',fitVisibleViewport);
