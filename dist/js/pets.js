@@ -1,5 +1,5 @@
 // # 原生像素形象延续审核稿 03；新增形象为外观示意，用户可自行选择。
-export const PET_TEMPLATES = [
+const templates = [
   {
     "id": "parrot",
     "name": "粉色鹦鹉鱼",
@@ -73,6 +73,14 @@ export const PET_TEMPLATES = [
     "icon": "fish"
   }
 ];
+
+// # 分类按固定顺序展示；同款鱼的不同颜色相邻，保留原 ID 和物种字段。
+export const PET_GROUPS = [
+  { id: 'turtle', label: '乌龟' },
+  { id: 'fish', label: '鱼' },
+  { id: 'shrimp', label: '虾' }
+].map(group => ({ ...group, templates: templates.filter(pet => pet.icon === group.id) }));
+export const PET_TEMPLATES = PET_GROUPS.flatMap(group => group.templates);
 
 const bodies = {
   'parrot': `<g transform="translate(6 6)"><path d="M0 12h5v3h5v8H5v3H0z" fill="#b69fa6"/><path d="M1 14h4v3h5v4H5v3H1z" fill="#dcc4c3"/><path d="M13 10V7h3V3h3v3h3v3h5v4z" fill="#b6a2ac"/><path d="M15 25h13v3h-5v3h-5v-3h-3z" fill="#c1a7b0"/><path d="M9 14h4v-4h15v3h6v3h5v8h-5v3h-6v2H16v-3h-4v-3H9z" fill="#9a9298"/><path d="M12 15h4v-3h12v3h5v3h4v5h-5v3H17v-3h-5z" fill="#e4c4c6"/><path d="M17 15h13v3H17zm3 4h7v3h-7z" fill="#f2decc"/><path d="M15 23h13v3H18v-2h-3z" fill="#c5a7b8"/><path d="M25 20h3v5h-3v-2h-3v-2h3z" fill="#bba4b0"/><rect x="33" y="17" width="4" height="4" fill="#b99c79"/><rect x="34" y="18" width="2" height="2" fill="#3b5951"/><rect x="34" y="18" width="1" height="1" fill="#f4edd4"/><rect x="37" y="23" width="3" height="1" fill="#9d888e"/></g>`,

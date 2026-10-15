@@ -3,7 +3,7 @@ import { TYPES, WATER_FIELDS, countLabel, diaryName, DIARY_NAME_MAX } from './da
 import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
-import { PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
+import { PET_GROUPS, PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
 import { HABITATS, habitatArt } from './habitats.js';
 export const options = (items, selected) => items.map(([value, label]) => `<option value="${e(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${e(label)}</option>`).join('');
 export const field = (label, name, value = '', attrs = '') => `<label class="field"><span>${e(label)}</span><input name="${e(name)}" value="${e(value)}" ${attrs}></label>`;
@@ -70,7 +70,7 @@ export function containerForm(c) {
 }
 export function petPicker(selected, open = false) {
   const current = PET_TEMPLATES.find(p => p.id === selected) || PET_TEMPLATES.find(p => p.id === 'crucian');
-  return `<details class="appearance-picker" ${open ? 'open' : ''}><summary><span class="selected-pet-preview">${petIcon(current.id, 42)}<b>${e(current.name)}</b></span><span>选择形象 ${icon('down', 12)}</span></summary><div class="pet-picker">${PET_TEMPLATES.map(p => `<label class="pet-option"><input type="radio" name="templateId" value="${p.id}" ${current.id === p.id ? 'checked' : ''}><span>${petIcon(p.id, 62)}<small>${e(p.name)}</small></span></label>`).join('')}</div></details>`;
+  return `<details class="appearance-picker" ${open ? 'open' : ''}><summary><span class="selected-pet-preview" role="img" aria-label="${e(current.name)}">${petIcon(current.id, 42)}</span><span>选择形象 ${icon('down', 12)}</span></summary><div class="pet-categories">${PET_GROUPS.map(group => `<fieldset class="pet-category" data-pet-category="${group.id}"><legend>${group.label}</legend><div class="pet-picker">${group.templates.map(p => `<label class="pet-option"><input type="radio" name="templateId" value="${p.id}" aria-label="${e(p.name)}" ${current.id === p.id ? 'checked' : ''}><span>${petIcon(p.id, 62)}</span></label>`).join('')}</div></fieldset>`).join('')}</div></details>`;
 }
 export function animalForm(data, a, containerId, templateId = '') {
   const selected = templateId || a?.templateId || inferPetTemplate(a?.species, a?.icon);

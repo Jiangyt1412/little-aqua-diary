@@ -380,7 +380,9 @@ document.addEventListener('change', async event => {
   try {
     if (field.name === 'templateId') {
       const form = field.closest('form'), preset = PET_TEMPLATES.find(p => p.id === field.value); if (!preset) return;
-      form.querySelector('.selected-pet-preview').innerHTML = `${petIcon(preset.id, 42)}<b>${e(preset.name)}</b>`;
+      const preview = form.querySelector('.selected-pet-preview');
+      preview.innerHTML = petIcon(preset.id, 42);
+      preview.setAttribute('aria-label', preset.name);
       const picker = field.closest('details'); if (picker) { picker.open = false; picker.querySelector('summary').focus({ preventScroll: true }); }
       if (form.dataset.form === 'animal' && !form.dataset.id) {
         if (form.elements.species.value === form.dataset.autoSpecies) { form.elements.species.value = preset.species; form.dataset.autoSpecies = preset.species; }

@@ -4,7 +4,7 @@ import { escapeHTML as e, dayLabel, localDate, timeLabel, relativeTime, latestRe
 import { icon, aquariumArt, animalIcon } from './art.js';
 import { options } from './forms.js';
 import { APP_VERSION } from './version.js';
-import { PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
+import { PET_GROUPS, petIcon, inferPetTemplate } from './pets.js';
 import { HABITATS, habitatArt } from './habitats.js';
 import { taskStates } from './tasks.js';
 import { compareAppVersions } from './updates.js';
@@ -99,5 +99,5 @@ export function tasksPanel(data, compact = false, containerId = '') {
   return `<section class="${compact ? 'panel task-panel' : 'task-manager'}"><div class="section-toolbar"><h2>${compact ? '接下来' : '任务提醒'}</h2>${addButton(compact ? 'reminders' : 'add-reminder', compact ? '管理' : '创建提醒', containerId ? `data-container="${e(containerId)}"` : '')}</div>${rows || '<p class="small-empty">暂无进行中的提醒</p>'}${compact ? '' : `<div class="calendar-export"><button class="button secondary" data-action="export-calendar" ${!tasks.some(t => t.state !== 'paused') ? 'disabled' : ''}>${icon('export', 17)}导出日历文件</button><p>日历不会随 App 任务自动更新。</p><details><summary>在 iPhone 日历中使用</summary><p>将 .ics 文件作为邮件附件，在苹果「邮件」中打开并导入。暂停或修改任务后，也需修改已导入的日历。</p></details></div>`}</section>`;
 }
 export function petGallery() {
-  return `<div class="pet-gallery">${PET_TEMPLATES.map(p => `<button data-action="use-pet-template" data-template="${p.id}">${petIcon(p.id, 78)}<strong>${e(p.name)}</strong><span>创建居民 ${icon('plus', 12)}</span></button>`).join('')}</div><p class="form-note">名称与数量可修改；黑壳虾按组管理。</p>`;
+  return `<div class="pet-categories pet-library">${PET_GROUPS.map(group => `<section class="pet-category" data-pet-category="${group.id}" aria-labelledby="pet-gallery-${group.id}"><h3 id="pet-gallery-${group.id}">${group.label}</h3><div class="pet-gallery">${group.templates.map(p => `<button type="button" data-action="use-pet-template" data-template="${p.id}" aria-label="选择${e(p.name)}">${petIcon(p.id, 64)}</button>`).join('')}</div></section>`).join('')}</div>`;
 }

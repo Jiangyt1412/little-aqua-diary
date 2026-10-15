@@ -1,7 +1,7 @@
 // # 缓存当前版本应用壳；浏览器数据和照片仍留在 localStorage / IndexedDB。
 const CACHE_PREFIX = 'little-aqua-diary-app-';
-const VERSION = '1.4.2';
-const CACHE = `${CACHE_PREFIX}v1.4.2`;
+const VERSION = '1.4.3';
+const CACHE = `${CACHE_PREFIX}v1.4.3`;
 const SHELL = ['./', './index.html', './styles.css', './studio.css', './manifest.webmanifest', './favicon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   ...['app', 'data', 'logic', 'inventory', 'media', 'forms', 'ui', 'art', 'pets', 'habitats', 'tasks', 'starter-reset', 'pwa', 'updates', 'version'].map(name => `./js/${name}.js`)];
 const urls = new Set(SHELL.map(path => new URL(path, self.registration.scope).href));
