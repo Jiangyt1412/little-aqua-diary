@@ -1,0 +1,14 @@
+// # 时间轴分组、时刻位置、碰撞布局和手势边界。
+import test from 'node:test';import assert from 'node:assert/strict';
+import{historyTimeline,layoutEvents,shiftDay,HOUR_WIDTH,TIMELINE_PAD}from'../dist/js/timeline.js';
+import{swipeTarget,shouldFinishSwipe}from'../dist/js/navigation.js';
+import{PET_GROUPS}from'../dist/js/pets.js';
+process.env.TZ='Asia/Shanghai'; // # 固定时区检查跨日，实际 App 用本地设备时间。
+const record=(id,containerId,time)=>({id,containerId,type:'feed',timestamp:time,createdAt:time,details:{}});
+test('三页滑动到邻页，不越界循环，非主页面不误切',()=>{assert.equal(swipeTarget('home',-50),'history');assert.equal(swipeTarget('history',60),'home');assert.equal(swipeTarget('history',-60),'residents');assert.equal(swipeTarget('home',60),null);assert.equal(swipeTarget('residents',-60),null);assert.equal(swipeTarget('tank',-60),null);});
+test('短拖回弹，足够距离或快速甩动才换页',()=>{assert.equal(shouldFinishSwipe(20,390,.9),false);assert.equal(shouldFinishSwipe(45,390,.2),false);assert.equal(shouldFinishSwipe(100,390,.2),true);assert.equal(shouldFinishSwipe(-45,390,-.6),true);});
+test('按缸分行且同一日按时间排列，不把其他日期并入',()=>{const data={containers:[{id:'a'},{id:'b'}]},records=[record('later','a','2026-10-15T12:00:00+08:00'),record('early','a','2026-10-15T08:00:00+08:00'),record('b','b','2026-10-15T10:00:00+08:00'),record('old','a','2026-10-14T23:59:59+08:00')],before=structuredClone(records),t=historyTimeline(data,records,{day:'2026-10-15'});assert.equal(t.rows.length,2);assert.deepEqual(t.rows[0].events.map(e=>e.record.id),['early','later']);assert.equal(t.total,3);assert.deepEqual(records,before);assert.equal(historyTimeline(data,records,{day:'2026-10-15',container:'b'}).rows.length,1);});
+test('时间轴本地午夜边界和半小时时刻位置一致',()=>{const d={containers:[{id:'a'}]},records=[record('midnight','a','2026-10-14T16:00:00Z'),record('next','a','2026-10-15T16:00:00Z')],t=historyTimeline(d,records,{day:'2026-10-15'});assert.equal(t.total,1);assert.equal(t.rows[0].events[0].x,TIMELINE_PAD);assert.equal(layoutEvents([record('r','a','2026-10-15T08:30:00+08:00')])[0].x,TIMELINE_PAD+8.5*HOUR_WIDTH);});
+test('重叠事件错层且不丢记录，空间足够时复用轨道',()=>{const events=layoutEvents([record('a','a','2026-10-15T08:00:00+08:00'),record('b','a','2026-10-15T08:01:00+08:00'),record('c','a','2026-10-15T12:00:00+08:00')]);assert.deepEqual(events.map(e=>e.lane),[0,1,0]);const t=historyTimeline({containers:[{id:'a'}]},events.map(e=>e.record),{day:'2026-10-15',limit:2});assert.equal(t.total,3);assert.equal(t.shown,2);assert.equal(t.remaining,1);});
+test('跨年闰日切换与无记录日期保持指定日',()=>{assert.equal(shiftDay('2024-02-28',1),'2024-02-29');assert.equal(shiftDay('2026-12-31',1),'2027-01-01');assert.equal(historyTimeline({containers:[{id:'a'}]},[],{day:'2026-01-01'}).day,'2026-01-01');});
+test('粉色与银黑形象相邻，原有十二个模板标识不变',()=>{const fish=PET_GROUPS.find(g=>g.id==='fish');assert.deepEqual(fish.templates.slice(0,3).map(p=>p.id),['parrot','angel','goby']);assert.equal(new Set(PET_GROUPS.flatMap(g=>g.templates).map(p=>p.id)).size,12);});

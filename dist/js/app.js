@@ -2,11 +2,13 @@
 import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
-import { shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
+import { homePage, historyPage, residentsPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
+import { positionTimelines } from './timeline.js';
+import { installNavigation } from './navigation.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
@@ -20,13 +22,14 @@ try { storage = window.localStorage; }
 catch { storage = { getItem() { throw new Error('无法访问存储'); }, setItem() { throw new Error('无法访问存储'); } }; }
 const store = new DiaryStore(storage), photos = new PhotoStore();
 const emptyFilters = () => ({ search: '', container: '', type: '', from: '', to: '' });
-const view = { page: 'home', tankId: '', month: localDate().slice(0, 7), selectedDay: '', residentContainer: '', historyLimit: 100, filtersOpen: false, filters: emptyFilters() };
+const view = { page: 'home', tankId: '', month: localDate().slice(0, 7), selectedDay: '', residentContainer: '', historyLimit: 100, filtersOpen: false, historyDay:'', filters: emptyFilters() };
 const app = document.getElementById('app'), overlay = document.getElementById('overlay-root');
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
 const quickTapTimes = new Map();
 let afterCreatingContainer = null;
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
-let announcedVersion = '', sorting;
+let announcedVersion = '', sorting, navigation;
+const timelinePositions=new Map();
 function paintUpdates() {
   const panel = overlay.querySelector('[data-update-panel]');
   if (panel) panel.outerHTML = updatePanel(updateState);
@@ -56,11 +59,12 @@ async function installUpdate() {
 }
 function render() {
   sorting?.cancel();
+  app.querySelectorAll('[data-timeline-day]').forEach(el=>timelinePositions.set(el.dataset.timelineDay,el.scrollLeft));
   const focused = document.activeElement, focusId = focused?.id, filterField = focused?.dataset.filterField;
   const selection = focused?.selectionStart;
   app.innerHTML = shell(store.data, view, store.issue);
   document.title = `${view.page === 'tank' ? store.data.containers.find(c => c.id === view.tankId)?.name || '鱼缸' : NAV.find(([id]) => id === view.page)?.[1] || '首页'} · ${diaryName(store.data)}`;
-  hydratePhotos(app, photos);
+  hydratePhotos(app, photos);positionTimelines(app,timelinePositions);navigation?.prepare();
   if (!overlay.querySelector('dialog[open]')) {
     const replacement = focusId ? document.getElementById(focusId) : filterField ? app.querySelector(`[data-filter-field="${CSS.escape(filterField)}"]`) : null;
     if (replacement) { replacement.focus({ preventScroll: true }); if (typeof selection === 'number' && ['search', 'text'].includes(replacement.type)) replacement.setSelectionRange(selection, selection); }
@@ -84,7 +88,7 @@ function closeSheet() {
 }
 function openSheet(title, content, glyph = 'pen', compact = false) {
   if (modalBusy) return false;
-  sorting?.cancel();
+  sorting?.cancel(); navigation?.cancel();
   if (!overlay.querySelector('dialog[open]')) focusBeforeDialog = document.activeElement;
   discardPhotoDraft(); recordDraft = null; pendingConfirm = null;
   overlay.innerHTML = `<dialog id="sheet" class="sheet ${compact ? 'compact-sheet' : ''}" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header class="sheet-header"><div class="sheet-title">${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2></div><button class="icon-button" aria-label="关闭弹窗" data-action="close">${icon('close', 16)}</button></header><div class="sheet-content">${content}</div></dialog>`;
@@ -360,7 +364,7 @@ const actions = {
   'pet-gallery': () => openSheet('居民形象', petGallery(), 'fish'),
   'use-pet-template': b => openNewAnimal('', b.dataset.template),
   'install-help': () => openSheet('在 iPhone 上使用', '<ol class="install-steps"><li>用 Safari 打开这个网址。</li><li>点「共享」→「添加到主屏幕」。</li><li>开启「作为网页 App 打开」，点「添加」。</li></ol><p class="form-note">首次联网打开并缓存后，可离线记日记。提醒在 App 内显示；日历提醒需导入日历文件。</p>', 'phone', true),
-  'start-empty': () => confirmAction('重新开始空白日记？', START_EMPTY_COPY + ' 操作不能直接撤销，请先保留含照片备份。', () => { commitAndFinish(data => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, seedData()); }, '空白日记已准备'); view.residentContainer = ''; view.filters = emptyFilters(); location.hash = 'home'; render(); }, '清空并开始', '<button class="text-link" data-action="export-json">先备份当前数据</button>'),
+  'start-empty': () => confirmAction('重新开始空白日记？', START_EMPTY_COPY + ' 操作不能直接撤销，请先保留含照片备份。', () => { commitAndFinish(data => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, seedData()); }, '空白日记已准备'); view.residentContainer = ''; view.filters = emptyFilters(); navigateRoute('home'); render(); }, '清空并开始', '<button class="text-link" data-action="export-json">先备份当前数据</button>'),
   'check-update': () => checkUpdates(),
   'install-update': installUpdate,
   manager: () => openSheet('管理与备份', managerContent(store.data, updateState), 'gear', true),
@@ -385,13 +389,14 @@ const actions = {
   'delete-record-only': b => commitAndFinish(d => deleteDiaryRecord(d, b.dataset.id, true), '记录已删除，居民保留'),
   'undo-record': () => { const id = undoRecordId; if (!id) return; const r = store.data.records.find(r => r.id === id); store.commit(d => { d.records = d.records.filter(r => r.id !== id); }); if (r) quickTapTimes.delete(`${r.containerId}:${r.type}`); render(); toast('已撤销'); },
   'toggle-filters': () => { view.filtersOpen = !view.filtersOpen; render(); },
-  'clear-filters': () => { view.filters = emptyFilters(); view.historyLimit = 100; render(); },
+  'history-day': b=>{view.historyDay=b.dataset.date;view.historyLimit=100;render();},
+  'clear-filters': () => { view.historyDay='';view.filters = emptyFilters(); view.historyLimit = 100; render(); },
   'more-history': () => { view.historyLimit += 100; render(); },
   'resident-filter': b => { view.residentContainer = b.dataset.id; render(); },
   month: b => { view.month = shiftMonth(view.month, Number(b.dataset.offset)); view.selectedDay = ''; render(); },
   'calendar-day': b => { view.selectedDay = view.selectedDay === b.dataset.date ? '' : b.dataset.date; render(); },
   'clear-day': () => { view.selectedDay = ''; render(); },
-  'tank-history': b => { view.filters = { ...emptyFilters(), container: b.dataset.container }; view.filtersOpen = true; location.hash = 'history'; },
+  'tank-history': b => { view.filters = { ...emptyFilters(), container: b.dataset.container }; view.filtersOpen = true; navigateRoute('history'); },
   'add-container': () => openSheet('添加缸', containerForm(null), 'tank'),
   'edit-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) openSheet('编辑缸', containerForm(c), 'tank'); },
   'delete-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) confirmAction(`删除${c.name}？`, '缸内居民和历史记录也将删除。请先备份。', () => commitAndFinish(d => { d.containers = d.containers.filter(c => c.id !== b.dataset.id); d.animals = d.animals.filter(a => a.containerId !== b.dataset.id); d.records = d.records.filter(r => r.containerId !== b.dataset.id); d.settings.reminders = d.settings.reminders.filter(r => r.containerId !== b.dataset.id); }, '缸已删除'), '确定删除'); },
@@ -428,12 +433,13 @@ document.addEventListener('submit', async event => {
 document.addEventListener('input', event => {
   if (event.target.name === 'diaryName') { const count=document.getElementById('diary-name-count'); if(count) { const length=diaryNameLength(event.target.value.trim()); count.textContent=`${length} / ${DIARY_NAME_MAX} 字`; count.classList.toggle('is-error',length>DIARY_NAME_MAX); } }
   if (event.target.name === 'countValue' && event.target.closest('[data-form="animal"]')) event.target.closest('form').dataset.quantityEdited = 'true';
-  if (event.target.dataset.filterField === 'search') { view.filters.search = event.target.value; view.historyLimit = 100; clearTimeout(searchTimer); searchTimer = setTimeout(render, 160); }
+  if (event.target.dataset.filterField === 'search') { view.filters.search = event.target.value;view.historyDay=''; view.historyLimit = 100; clearTimeout(searchTimer); searchTimer = setTimeout(render, 160); }
 });
 document.addEventListener('change', async event => {
   const field = event.target;
   try {
-    if (['pauseLength','resumeDate'].includes(field.name)) {
+    if(field.hasAttribute('data-history-day')) {view.historyDay=field.value||'';view.historyLimit=100;render();}
+    else if (['pauseLength','resumeDate'].includes(field.name)) {
       const form=field.closest('form'), custom=form.elements.pauseLength.value==='date', date=form.elements.resumeDate;
       form.querySelector('.pause-date').hidden=!custom; date.disabled=!custom; date.required=custom;
       const mode=form.elements.pauseLength.value, until=pauseResumeDate(mode,date.value);
@@ -451,7 +457,7 @@ document.addEventListener('change', async event => {
       }
     }
     else if (field.dataset.photoUpload) await uploadPhotos(field);
-    else if (field.dataset.filterField && field.dataset.filterField !== 'search') { view.filters[field.dataset.filterField] = field.value; view.historyLimit = 100; render(); } // # 搜索由 input 更新，失焦不重建正在点击的记录按钮。
+    else if (field.dataset.filterField && field.dataset.filterField !== 'search') { view.filters[field.dataset.filterField] = field.value;view.historyDay=''; view.historyLimit = 100; render(); } // # 搜索由 input 更新，失焦不重建正在点击的记录按钮。
     else if (field.id === 'import-file') { const file = field.files[0]; field.value = ''; await importFile(file); }
     else if (field.closest('#record-form')?.dataset.type === 'add' && ['inventoryAnimalId', 'containerId'].includes(field.name)) {
       const form = field.closest('form'), cid = form.elements.containerId.value;
@@ -463,6 +469,7 @@ document.addEventListener('change', async event => {
     else if (field.name === 'countType') { const form = field.closest('form'), existing = store.data.animals.find(a => a.id === form.dataset.id); document.getElementById('animal-count-fields').innerHTML = countFields(field.value, existing); }
   } catch (error) { toast(error.message, true); }
 });
+function navigateRoute(route){history.replaceState(null,'',`#${route}`);readRoute();}
 function readRoute() {
   const hash = location.hash.slice(1); let tankId = '';
   if (hash.startsWith('tank/')) { try { tankId = decodeURIComponent(hash.slice(5)); } catch {} }
@@ -472,11 +479,11 @@ function readRoute() {
   if (hash === 'settings') actions.manager();
 }
 window.addEventListener('hashchange', readRoute);
-window.addEventListener('storage', event => { if (event.key === STORAGE_KEY || event.key === null) { store.reload(); render(); } });
+window.addEventListener('storage', event => { navigation?.cancel(); if (event.key === STORAGE_KEY || event.key === null) { store.reload(); render(); } });
 // # 跨午夜和重新打开页面时刷新日期；不从未记录日期推断未喂食。
 let renderedMinute = Math.floor(Date.now() / 60000);
 function refreshClock() {
-  render();
+  if(navigation?.busy)return;render();
   const panel=overlay.querySelector('.task-manager');
   if(panel) panel.outerHTML=tasksPanel(store.data,false,panel.dataset.reminderContainer||'');
 }
@@ -504,6 +511,7 @@ sorting = installSorting({
   },
   onError(error) { render(); toast(error.message,true); }
 });
+navigation=installNavigation({route:()=>view.page,content:route=>({home:homePage,history:historyPage,residents:residentsPage}[route])(store.data,{...view,page:route}),navigate:navigateRoute,hydrate:root=>hydratePhotos(root,photos),position:root=>positionTimelines(root,timelinePositions)});
 readRoute();
 window.addEventListener('aqua-update-ready' , () => checkUpdates(true));
 // # 页面重开导致注册取消时，不在失效页面继续发起启动检查。

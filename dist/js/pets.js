@@ -80,7 +80,8 @@ export const PET_GROUPS = [
   { id: 'fish', label: '鱼' },
   { id: 'shrimp', label: '虾' }
 ].map(group => {
-  const entries = templates.filter(pet => pet.icon === group.id), families = new Map();
+  const order=['parrot','angel','goby','tetra-red','tetra-purple','tetra-yellow','tetra-green','tetra-blue','crucian','guppy-gold'];
+  const entries = templates.filter(pet => pet.icon === group.id).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id)), families = new Map();
   for (const pet of entries) {
     const family = pet.id.startsWith('tetra-') ? 'tetra' : pet.id;
     if (!families.has(family)) families.set(family, { id: family, templates: [] });
