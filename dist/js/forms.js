@@ -1,10 +1,11 @@
 // # 常用操作只记时间，编辑表单保留旧版数据；昵称和头像单独编辑。
-import { TYPES, WATER_FIELDS, countLabel, diaryName, DIARY_NAME_MAX } from './data.js';
+import { TYPES, WATER_FIELDS, countLabel, diaryName, diaryNameLength, DIARY_NAME_MAX } from './data.js';
 import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
 import { PET_GROUPS, PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
 import { HABITATS, habitatArt } from './habitats.js';
+import { taskState, pauseResumeDate } from './tasks.js';
 export const options = (items, selected) => items.map(([value, label]) => `<option value="${e(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${e(label)}</option>`).join('');
 export const field = (label, name, value = '', attrs = '') => `<label class="field"><span>${e(label)}</span><input name="${e(name)}" value="${e(value)}" ${attrs}></label>`;
 export const textarea = (label, name, value = '', placeholder = '') => `<label class="field"><span>${e(label)}</span><textarea name="${e(name)}" rows="3" maxlength="5000" placeholder="${e(placeholder)}">${e(value)}</textarea></label>`;
@@ -12,9 +13,9 @@ export const selectField = (label, name, items, selected) => `<label class="fiel
 const text = 'type="text" maxlength="300"';
 const number = 'type="number" step="any" inputmode="decimal" min="0.001"';
 export const formFooter = (label = '保存', left = '') => `<div class="form-error" role="alert" hidden></div><footer class="sheet-footer">${left || '<button type="button" class="button secondary" data-action="close">取消</button>'}<button type="submit" class="button primary">${icon('check', 16)}${label}</button></footer>`;
-// # 单字段编辑，不改变首页标题、缸名或任何居民资料。
+// # 不截断旧名字或输入法组合文字，保存时按可见字数执行新上限。
 export function diaryNameForm(data) {
-  return `<form data-form="diary-name">${field('日记名称', 'diaryName', diaryName(data), `id="diary-name-input" type="text" maxlength="${DIARY_NAME_MAX}" required autocomplete="off"`)}${formFooter()}</form>`;
+  return `<form data-form="diary-name">${field('日记名称', 'diaryName', diaryName(data), 'id="diary-name-input" type="text" maxlength="500" required autocomplete="off" aria-describedby="diary-name-count"')}<p class="name-count" id="diary-name-count" aria-live="polite">${diaryNameLength(diaryName(data))} / ${DIARY_NAME_MAX} 字</p>${formFooter()}</form>`;
 }
 export function photoFields(ids = [], kind = 'observation') {
   const avatar = kind === 'avatar';
@@ -70,7 +71,7 @@ export function containerForm(c) {
 }
 export function petPicker(selected, open = false) {
   const current = PET_TEMPLATES.find(p => p.id === selected) || PET_TEMPLATES.find(p => p.id === 'crucian');
-  return `<details class="appearance-picker" ${open ? 'open' : ''}><summary><span class="selected-pet-preview" role="img" aria-label="${e(current.name)}">${petIcon(current.id, 42)}</span><span>选择形象 ${icon('down', 12)}</span></summary><div class="pet-categories">${PET_GROUPS.map(group => `<fieldset class="pet-category" data-pet-category="${group.id}"><legend>${group.label}</legend><div class="pet-picker">${group.templates.map(p => `<label class="pet-option"><input type="radio" name="templateId" value="${p.id}" aria-label="${e(p.name)}" ${current.id === p.id ? 'checked' : ''}><span>${petIcon(p.id, 62)}</span></label>`).join('')}</div></fieldset>`).join('')}</div></details>`;
+  return `<details class="appearance-picker" ${open ? 'open' : ''}><summary><span class="selected-pet-preview" role="img" aria-label="${e(current.name)}">${petIcon(current.id, 42)}</span><span>选择形象 ${icon('down',12)}</span></summary><div class="pet-categories">${PET_GROUPS.map(group=>`<fieldset class="pet-category" data-pet-category="${group.id}"><legend>${group.label}</legend><div class="pet-picker pet-family-grid">${group.families.map(family=>`<div class="pet-family ${family.templates.length>1?'pet-family-many':''}" data-pet-family="${family.id}">${family.templates.map(p=>`<label class="pet-option"><input type="radio" name="templateId" value="${p.id}" aria-label="${e(p.name)}" ${current.id===p.id?'checked':''}><span>${petIcon(p.id,62)}</span></label>`).join('')}</div>`).join('')}</div></fieldset>`).join('')}</div></details>`;
 }
 export function animalForm(data, a, containerId, templateId = '') {
   const selected = templateId || a?.templateId || inferPetTemplate(a?.species, a?.icon);
@@ -91,8 +92,11 @@ function membersCount(a) { return a.countType === 'exact' ? Number(a.countValue)
 
 // # 重复提醒保持短表单；暂停原因存入日记备份，不作健康建议。
 export function reminderForm(data, rule, containerId = '') {
-  return `<form data-form="reminder" data-id="${e(rule?.id || '')}">${selectField('缸', 'containerId', data.containers.map(c => [c.id, c.name]), rule?.containerId || containerId || data.containers[0]?.id)}${selectField('任务', 'type', ['feed', 'siphon', 'water', 'topup'].map(type => [type, TYPES[type].label]), rule?.type || 'feed')}<div class="field-grid">${field('每隔 · 天', 'days', rule?.days || 1, 'type="number" min="1" max="3650" step="1" inputmode="numeric" required')}${field('时间', 'time', rule?.time || '08:00', 'type="time" required')}</div>${field('开始日期', 'startDate', rule?.startDate || localDateTime().slice(0, 10), 'type="date" required')}<details class="extra-fields"><summary>备注名称 · 选填</summary>${field('名称', 'title', rule?.title, 'type="text" maxlength="100" placeholder="如 少量喂食"')}${rule?.pauseReason ? `<p class="pause-history">上次暂停：${e(rule.pauseReason)}</p>` : ''}</details>${formFooter('保存', rule ? `<button type="button" class="button danger-quiet" data-action="delete-reminder" data-id="${e(rule.id)}">删除提醒</button>` : '')}</form>`;
+  const startDate = rule && taskState(data,rule).autoResumed ? rule.pauseUntil : rule?.startDate;
+  return `<form data-form="reminder" data-id="${e(rule?.id || '')}">${selectField('缸', 'containerId', data.containers.map(c => [c.id, c.name]), rule?.containerId || containerId || data.containers[0]?.id)}${selectField('任务', 'type', ['feed', 'siphon', 'water', 'topup'].map(type => [type, TYPES[type].label]), rule?.type || 'feed')}<div class="field-grid reminder-clock">${field('间隔天数', 'days', rule?.days || 1, 'type="number" min="1" max="3650" step="1" inputmode="numeric" required aria-describedby="repeat-help"')}${field('提醒时间', 'time', rule?.time || '08:00', 'type="time" required')}</div><p class="form-note repeat-help" id="repeat-help">每天填 1，每三天填 3。保存后可随时暂停几天。</p>${field('开始日期', 'startDate', startDate || localDateTime().slice(0, 10), 'type="date" required')}<details class="extra-fields"><summary>备注名称 · 选填</summary>${field('名称', 'title', rule?.title, 'type="text" maxlength="100" placeholder="如 少量喂食"')}${rule?.pauseReason ? `<p class="pause-history">上次暂停：${e(rule.pauseReason)}</p>` : ''}</details>${formFooter('保存', rule ? `<button type="button" class="button danger-quiet" data-action="delete-reminder" data-id="${e(rule.id)}">删除提醒</button>` : '')}</form>`;
 }
 export function pauseForm(rule) {
-  return `<form data-form="pause-reminder" data-id="${e(rule.id)}">${textarea('暂停原因 · 选填', 'pauseReason', rule.pauseReason, '如 生病期间控制饮食').replace('maxlength="5000"', 'maxlength="1000"')}<p class="form-note">暂停后不再显示到期提醒，可随时恢复。</p>${formFooter('暂停提醒')}</form>`;
+  const today = localDateTime().slice(0,10), timed = rule.status === 'paused' && rule.pauseUntil > today;
+  const selected = timed ? 'date' : rule.status === 'paused' && !rule.pauseUntil ? 'manual' : '3';
+  return `<form data-form="pause-reminder" data-id="${e(rule.id)}" data-time="${e(rule.time||'08:00')}"><fieldset class="pause-length"><legend>暂停多久</legend><div class="pause-presets">${[['1','1 天'],['3','3 天'],['7','7 天'],['date','指定日期'],['manual','手动恢复']].map(([value,label])=>`<label><input type="radio" name="pauseLength" value="${value}" ${selected===value?'checked':''}><span>${label}</span></label>`).join('')}</div></fieldset><div class="pause-date" ${selected==='date'?'':'hidden'}>${field('恢复日期', 'resumeDate', timed ? rule.pauseUntil : pauseResumeDate('3'), `type="date" min="${pauseResumeDate('1')}" ${selected==='date'?'required':'disabled'}`)}</div><p class="form-note pause-schedule" aria-live="polite">${selected==='manual'?'暂停至手动恢复。':`${e(timed ? rule.pauseUntil : pauseResumeDate('3'))} ${e(rule.time||'08:00')} 恢复`}</p>${textarea('原因 · 选填', 'pauseReason', rule.pauseReason, '如 生病期间控制饮食').replace('maxlength="5000"', 'maxlength="1000"')}<p class="form-note">恢复日按原时间和间隔继续，不补提醒。可提前恢复。</p>${formFooter(rule.status==='paused'?'保存暂停':'暂停提醒')}</form>`;
 }

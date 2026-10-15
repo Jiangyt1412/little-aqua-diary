@@ -1,4 +1,4 @@
-// # 原创 SVG 像素素材；不使用游戏素材、Emoji 或远程图片。
+// # 原创 SVG 像素素材；不使用游戏素材或远程图片。
 const paths = {
   pause: '<path d="M5 4h5v16H5zm9 0h5v16h-5z"/>',
   play: '<path d="M5 3h3v3h4v3h4v3h4v3h-4v3h-4v3H8v2H5z"/>',
@@ -13,7 +13,7 @@ const paths = {
   chart: '<path d="M3 3h2v16h16v2H3zm5 9h3v5H8zm5-5h3v10h-3zm5-3h3v13h-3z"/>',
   gear: '<path d="M9 2h6v4h3V4h3v5h-3v6h3v5h-3v-2h-3v4H9v-4H6v2H3v-5h3V9H3V4h3v2h3zm0 7v6h6V9z" fill-rule="evenodd"/>',
   food: '<path d="M6 4h2v5H6zm5-2h2v5h-2zm5 2h2v5h-2zM3 12h18v5h-3v3H6v-3H3z"/>',
-  clean: '<path d="M17 2h3v9h-3v3h-3v3h-3v4H3v-3h3v-3h4v-3h3V9h4zM4 3h2v2h2v2H6v2H4V7H2V5h2z"/>',
+  clean: '<g><path d="M16 1h5v2h2v6h-2v2h-3v2h-3v-3h-2V7h1V3h2z" fill="#367fba"/><path d="M17 3h3v2h-3v3h-2V5h2z" fill="#80b5d8"/><path d="M14 10h3v3h-2v2h-2v2h-2v2H9v2H7v2H3v-4h2v-2h2v-2h2v-2h2v-2h3z" fill="#7d9fa8"/><path d="M14 12h1v1h-2v2h-2v2H9v2H7v2H5v-2h2v-2h2v-2h2v-2h3z" fill="#deeff1" fill-opacity=".9"/><path d="M12 14h1v1h-2v2H9v2H7v2H5v-1h1v-2h2v-2h2v-2z" fill="#fbffff"/></g>',
   water: '<path d="M10 2h4v3h2v3h2v3h2v6h-2v3h-3v2H9v-2H6v-3H4v-6h2V8h2V5h2zm-2 12v3h3v-2H9v-1z"/>',
   drop: '<path d="M8 3h4v3h2v3h2v5h-2v3H7v-3H4V9h2V6h2zM18 14h2v3h3v2h-3v3h-2v-3h-3v-2h3z"/>',
   test: '<path d="M7 2h10v3h-2v8h3v3h2v5H4v-5h2v-3h3V5H7zm4 3v9H8v3h8v-3h-3V5z" fill-rule="evenodd"/>',

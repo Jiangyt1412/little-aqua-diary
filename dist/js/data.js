@@ -2,7 +2,13 @@
 import { validDay } from './tasks.js';
 export const STORAGE_KEY = 'little-aqua-diary:v1';
 // # 名称是可选设置，旧备份不需迁移；自定义名称随完整 JSON 备份保留。
-export const DIARY_NAME_MAX = 24;
+export const DIARY_NAME_MAX = 20;
+export const diaryNameLength = value => typeof Intl.Segmenter === 'function' ? [...new Intl.Segmenter('zh', { granularity: 'grapheme' }).segment(String(value))].length : Array.from(String(value)).length;
+export function checkedDiaryName(value) {
+  const name = String(value).trim();
+  if (!name || name.length > 500 || diaryNameLength(name) > DIARY_NAME_MAX) throw new Error(`日记名称请填写 1 至 ${DIARY_NAME_MAX} 字。`);
+  return name;
+}
 export const diaryName = data => data.settings.diaryName || '我的水族日记';
 export const TYPES = {
   feed: { label: '喂食', icon: 'food', color: 'gold' },
@@ -131,7 +137,8 @@ export function validateData(input) {
     }
   }
   if (!isObject(input.settings) || !['shore', 'lagoon'].includes(input.settings.theme) || typeof input.settings.animations !== 'boolean' || !Array.isArray(input.settings.reminders)) fail('设置无效');
-  if (input.settings.diaryName !== undefined && (!validText(input.settings.diaryName, DIARY_NAME_MAX) || !input.settings.diaryName.trim())) fail('日记名称须为 1 至 24 个字符');
+  // # 已保存的旧版 21–24 字名称原样保留；新编辑由 checkedDiaryName 执行 20 字上限。
+  if (input.settings.diaryName !== undefined && (!validText(input.settings.diaryName, 500) || !input.settings.diaryName.trim() || diaryNameLength(input.settings.diaryName) > 24)) fail('日记名称无效');
   const ruleIds = new Set();
   for (const rule of input.settings.reminders) {
     if (!isObject(rule) || !validText(rule.id, 150) || !rule.id || ruleIds.has(rule.id) || !ids.containers.has(rule.containerId) || !Object.hasOwn(TYPES, rule.type) || !Number.isInteger(rule.days) || rule.days < 1 || rule.days > 3650) fail('提醒规则无效');
@@ -139,11 +146,24 @@ export function validateData(input) {
     if (rule.status !== undefined && !['active', 'paused'].includes(rule.status)) fail('提醒状态无效');
     if (rule.time !== undefined && (typeof rule.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(rule.time))) fail('提醒时间无效');
     if (rule.startDate !== undefined && !validDay(rule.startDate)) fail('提醒开始日期无效');
+    if (rule.pauseUntil !== undefined && !validDay(rule.pauseUntil)) fail('提醒恢复日期无效');
     for (const field of ['createdAt', 'updatedAt', 'pausedAt']) if (rule[field] !== undefined && !dateValid(rule[field])) fail('提醒日期无效');
     if (rule.title !== undefined && !validText(rule.title, 100)) fail('提醒标题无效');
     if (rule.pauseReason !== undefined && !validText(rule.pauseReason, 1000)) fail('暂停原因过长');
   }
   if (input.settings.lastBackupAt != null && !dateValid(input.settings.lastBackupAt)) fail('备份时间无效');
+  // # 展示顺序是可选设置；已删除缸或物种的旧排序忽略展示，不阻止删除和旧备份恢复。
+  if (input.settings.residentOrder !== undefined) {
+    if (!Array.isArray(input.settings.residentOrder) || input.settings.residentOrder.length > 100000) fail('居民排序无效');
+    const orderedGroups = new Set();
+    for (const entry of input.settings.residentOrder) {
+      if (!isObject(entry) || !validText(entry.containerId,150) || !entry.containerId || !validText(entry.species,100) || !entry.species) fail('居民排序分组无效');
+      const key = JSON.stringify([entry.containerId,entry.species]); if(orderedGroups.has(key)) fail('居民排序分组重复'); orderedGroups.add(key);
+      for (const field of ['variants','members']) if(entry[field] !== undefined && (!Array.isArray(entry[field]) || entry[field].length > 100000
+        || new Set(entry[field]).size !== entry[field].length || entry[field].some(value=>!validText(value,field==='variants'?100:1000) || !value
+          || (field==='variants' && !/^[a-zA-Z0-9_-]+$/.test(value))))) fail('居民排序项目无效');
+    }
+  }
   const clean = JSON.parse(JSON.stringify(input));
   delete clean.assets; delete clean.exportedAt; // # 照片二进制不进入 localStorage，导入时单独恢复。
   return clean;

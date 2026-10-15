@@ -79,7 +79,15 @@ export const PET_GROUPS = [
   { id: 'turtle', label: '乌龟' },
   { id: 'fish', label: '鱼' },
   { id: 'shrimp', label: '虾' }
-].map(group => ({ ...group, templates: templates.filter(pet => pet.icon === group.id) }));
+].map(group => {
+  const entries = templates.filter(pet => pet.icon === group.id), families = new Map();
+  for (const pet of entries) {
+    const family = pet.id.startsWith('tetra-') ? 'tetra' : pet.id;
+    if (!families.has(family)) families.set(family, { id: family, templates: [] });
+    families.get(family).templates.push(pet);
+  }
+  return { ...group, templates: entries, families: [...families.values()] };
+});
 export const PET_TEMPLATES = PET_GROUPS.flatMap(group => group.templates);
 
 const bodies = {

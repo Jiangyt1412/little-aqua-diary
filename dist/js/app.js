@@ -1,13 +1,15 @@
 // # 应用协调层：本地事务、照片草稿、简化导航和旧备份兼容。
-import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName } from './data.js';
+import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
 import { shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
+import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
+import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
-import { pauseTask, resumeTask, tasksCalendar } from './tasks.js';
+import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
 import { isUntouchedStarter } from './starter-reset.js';
 import { setupPwa } from './pwa.js';
 import { fetchLatestRelease, prepareAppUpdate, compareAppVersions } from './updates.js';
@@ -24,7 +26,7 @@ let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, re
 const quickTapTimes = new Map();
 let afterCreatingContainer = null;
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
-let announcedVersion = '';
+let announcedVersion = '', sorting;
 function paintUpdates() {
   const panel = overlay.querySelector('[data-update-panel]');
   if (panel) panel.outerHTML = updatePanel(updateState);
@@ -53,6 +55,7 @@ async function installUpdate() {
   }
 }
 function render() {
+  sorting?.cancel();
   const focused = document.activeElement, focusId = focused?.id, filterField = focused?.dataset.filterField;
   const selection = focused?.selectionStart;
   app.innerHTML = shell(store.data, view, store.issue);
@@ -81,6 +84,7 @@ function closeSheet() {
 }
 function openSheet(title, content, glyph = 'pen', compact = false) {
   if (modalBusy) return false;
+  sorting?.cancel();
   if (!overlay.querySelector('dialog[open]')) focusBeforeDialog = document.activeElement;
   discardPhotoDraft(); recordDraft = null; pendingConfirm = null;
   overlay.innerHTML = `<dialog id="sheet" class="sheet ${compact ? 'compact-sheet' : ''}" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header class="sheet-header"><div class="sheet-title">${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2></div><button class="icon-button" aria-label="关闭弹窗" data-action="close">${icon('close', 16)}</button></header><div class="sheet-content">${content}</div></dialog>`;
@@ -182,7 +186,7 @@ function quickRecord(type, cid, reminderId = '') {
   if (now - (quickTapTimes.get(key) || 0) < 900) return;
   quickTapTimes.set(key, now);
   const timestamp = new Date().toISOString(), id = uid('record');
-  store.commit(data => { if (!data.containers.some(c => c.id === cid)) throw new Error('这个缸已被移除。'); if (reminderId && !data.settings.reminders.some(r => r.id === reminderId && r.status !== 'paused' && r.containerId === cid && r.type === type)) throw new Error('提醒已暂停或移除。'); data.records.push({ id, type, containerId: cid, timestamp, details: {}, notes: '', createdAt: timestamp, updatedAt: timestamp, ...(reminderId ? { reminderId } : {}) }); });
+  store.commit(data => { if (!data.containers.some(c => c.id === cid)) throw new Error('这个缸已被移除。'); if (reminderId && !data.settings.reminders.some(r => r.id === reminderId && taskState(data,r).state !== 'paused' && r.containerId === cid && r.type === type)) throw new Error('提醒已暂停或移除。'); data.records.push({ id, type, containerId: cid, timestamp, details: {}, notes: '', createdAt: timestamp, updatedAt: timestamp, ...(reminderId ? { reminderId } : {}) }); });
   if (overlay.querySelector('dialog')) closeSheet(); render();
   toast(`${TYPES[type].label} · ${timeLabel(timestamp)}`, false, id);
 }
@@ -260,6 +264,13 @@ function saveAnimal(form) {
   }, '物种与数量已保存');
   if (accepted.size) confirmAction('减少居民数量？', `将移除最后 ${accepted.size} 个已命名或有头像的个体。可先备份。`, perform, '确认修改'); else perform();
 }
+function openSpeciesGroup(button) {
+  const group = speciesGroups(store.data,button.dataset.container).find(group=>group.key===button.dataset.species); if(!group) return;
+  const matching = button.dataset.template ? group.animals.filter(a=>(a.templateId || PET_TEMPLATES.find(p=>p.species===a.species)?.id)===button.dataset.template) : group.animals;
+  if (matching.length===1) { const animal=matching[0]; openSheet('物种与数量',animalForm(store.data,animal,animal.containerId),animal.icon || 'fish'); return; }
+  const animals = [...group.animals].sort((a,b)=>group.variants.indexOf(a.templateId)-group.variants.indexOf(b.templateId));
+  openSheet(group.name, `<div class="species-edit-list">${animals.map(a=>`<button type="button" data-action="edit-animal" data-id="${e(a.id)}">${petIcon(a.templateId,42)}<span>${e(a.species)}</span><b>${e(countLabel(a))}</b>${icon('pen',14)}</button>`).join('')}</div><footer class="sheet-footer"><button type="button" class="button secondary" data-action="close">关闭</button></footer>`, 'fish');
+}
 function openMember(button) {
   const animal = store.data.animals.find(a => a.id === button.dataset.animal); if (!animal) return;
   const members = membersFor(animal), index = members.findIndex(m => m.id === button.dataset.member), member = members[index]; if (!member) return;
@@ -287,16 +298,19 @@ function saveReminder(form) {
   const fd = new FormData(form), id = form.dataset.id || uid('reminder'), now = new Date().toISOString();
   const values = { containerId: String(fd.get('containerId')), type: String(fd.get('type')), days: Number(fd.get('days')), time: String(fd.get('time')), startDate: String(fd.get('startDate')), title: String(fd.get('title') || '').trim() };
   if (!['feed', 'siphon', 'water', 'topup'].includes(values.type)) throw new Error('请选择喂食、吸便、换水或加水任务。');
+  if (!Number.isInteger(values.days) || values.days < 1 || values.days > 3650) throw new Error('间隔请填写 1 至 3650 的整数天数。');
   commitAndFinish(data => {
     const index = data.settings.reminders.findIndex(r => r.id === id), old = data.settings.reminders[index];
     if (form.dataset.id && !old) throw new Error('这个提醒已被其他窗口删除。');
     const next = { ...old, ...values, id, status: old?.status || 'active', createdAt: old?.createdAt || now, updatedAt: now };
+    if (old && taskState(data,old).autoResumed) { next.status = 'active'; delete next.pauseUntil; }
     if (index < 0) data.settings.reminders.push(next); else data.settings.reminders[index] = next;
   }, '提醒已保存');
 }
 function savePause(form) {
-  const reason = String(new FormData(form).get('pauseReason') || '').trim();
-  commitAndFinish(data => pauseTask(data, form.dataset.id, reason), '提醒已暂停');
+  const fd = new FormData(form), reason = String(fd.get('pauseReason') || '').trim(), now = new Date();
+  const until = pauseResumeDate(String(fd.get('pauseLength')), String(fd.get('resumeDate') || ''), now);
+  commitAndFinish(data => pauseTask(data, form.dataset.id, reason, now, until), until ? `已暂停，${until} 恢复` : '已暂停，等待手动恢复');
 }
 async function exportJSON() {
   if (store.locked) { downloadFile(`水族日记-原始数据-${localDate()}.txt`, store.raw ?? '', 'text/plain'); toast('原始数据已导出'); return; }
@@ -338,15 +352,15 @@ const actions = {
   reminders: b => openReminders(b?.dataset.container || ''),
   'add-reminder': b => { if (ensureContainers(id => openSheet('创建提醒', reminderForm(store.data, null, id), 'bell'))) openSheet('创建提醒', reminderForm(store.data, null, b.dataset.container), 'bell'); },
   'edit-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) openSheet('编辑提醒', reminderForm(store.data, r), 'bell'); },
-  'pause-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) openSheet('暂停提醒', pauseForm(r), 'pause'); },
+  'pause-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) openSheet('暂停提醒', pauseForm({...r,status:taskState(store.data,r).status}), 'pause'); },
   'resume-reminder': b => commitAndFinish(data => resumeTask(data, b.dataset.id), '提醒已恢复'),
   'delete-reminder': b => confirmAction('删除提醒？', '已有维护记录会保留。', () => commitAndFinish(data => { data.settings.reminders = data.settings.reminders.filter(r => r.id !== b.dataset.id); }, '提醒已删除'), '删除提醒'),
-  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && r.status !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) quickRecord(r.type, r.containerId, r.id); },
+  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && taskState(store.data,r).state !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) quickRecord(r.type, r.containerId, r.id); },
   'export-calendar': () => { downloadFile('水族维护提醒.ics', tasksCalendar(store.data, TYPES), 'text/calendar'); toast('日历文件已导出'); },
   'pet-gallery': () => openSheet('居民形象', petGallery(), 'fish'),
   'use-pet-template': b => openNewAnimal('', b.dataset.template),
   'install-help': () => openSheet('在 iPhone 上使用', '<ol class="install-steps"><li>用 Safari 打开这个网址。</li><li>点「共享」→「添加到主屏幕」。</li><li>开启「作为网页 App 打开」，点「添加」。</li></ol><p class="form-note">首次联网打开并缓存后，可离线记日记。提醒在 App 内显示；日历提醒需导入日历文件。</p>', 'phone', true),
-  'start-empty': () => confirmAction('重新开始？', '所有缸、居民、记录和提醒将清空。请先保留含照片备份。', () => { commitAndFinish(data => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, seedData()); }, '空白日记已准备'); view.residentContainer = ''; view.filters = emptyFilters(); location.hash = 'home'; render(); }, '清空并开始', '<button class="text-link" data-action="export-json">先备份当前数据</button>'),
+  'start-empty': () => confirmAction('重新开始空白日记？', START_EMPTY_COPY + ' 操作不能直接撤销，请先保留含照片备份。', () => { commitAndFinish(data => { for (const key of Object.keys(data)) delete data[key]; Object.assign(data, seedData()); }, '空白日记已准备'); view.residentContainer = ''; view.filters = emptyFilters(); location.hash = 'home'; render(); }, '清空并开始', '<button class="text-link" data-action="export-json">先备份当前数据</button>'),
   'check-update': () => checkUpdates(),
   'install-update': installUpdate,
   manager: () => openSheet('管理与备份', managerContent(store.data, updateState), 'gear', true),
@@ -382,6 +396,7 @@ const actions = {
   'edit-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) openSheet('编辑缸', containerForm(c), 'tank'); },
   'delete-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) confirmAction(`删除${c.name}？`, '缸内居民和历史记录也将删除。请先备份。', () => commitAndFinish(d => { d.containers = d.containers.filter(c => c.id !== b.dataset.id); d.animals = d.animals.filter(a => a.containerId !== b.dataset.id); d.records = d.records.filter(r => r.containerId !== b.dataset.id); d.settings.reminders = d.settings.reminders.filter(r => r.containerId !== b.dataset.id); }, '缸已删除'), '确定删除'); },
   'add-animal': b => openNewAnimal(b.dataset.container),
+  'edit-species-group': openSpeciesGroup,
   'edit-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) openSheet('物种与数量', animalForm(store.data, a, a.containerId), a.icon || 'fish'); },
   'delete-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) confirmAction(`删除${a.species}？`, '个体名字和头像引用将移除，历史维护记录保留。', () => commitAndFinish(d => { d.animals = d.animals.filter(a => a.id !== b.dataset.id); }, '已移除'), '确定删除'); },
   'edit-member': openMember,
@@ -398,7 +413,7 @@ const actions = {
   'export-csv': () => { downloadFile(`水族记录-${localDate()}.csv`, csvText(store.data), 'text/csv'); toast('记录表格已导出'); },
   'raw-export': () => { downloadFile(`水族日记-原始数据-${localDate()}.txt`, store.raw ?? JSON.stringify(store.data), 'text/plain'); toast('原始数据已导出'); },
   import: () => document.getElementById('import-file')?.click(),
-  'clear-records': () => confirmAction('清空全部记录？', `将删除 ${store.data.records.length} 条记录。居民和头像保留。请先备份。`, () => commitAndFinish(clearDiaryRecords, '记录已清空'), '确认清空')
+  'clear-records': () => confirmAction('仅清空维护记录？', `将清空 ${store.data.records.length} 条记录。${CLEAN_RECORDS_COPY} 操作不能直接撤销。`, () => commitAndFinish(clearDiaryRecords, '维护记录已清空'), '清空维护记录', '<button class="text-link" data-action="export-json">先备份当前数据</button>')
 };
 document.addEventListener('click', async event => {
   const b = event.target.closest('[data-action]'); if (!b || b.disabled || !Object.hasOwn(actions, b.dataset.action)) return;
@@ -407,17 +422,24 @@ document.addEventListener('click', async event => {
 document.addEventListener('submit', async event => {
   const form = event.target.closest('[data-form]'); if (!form) return; event.preventDefault();
   const handlers = { record: saveRecord, container: saveContainer, animal: saveAnimal, member: saveMember, reminder: saveReminder, 'pause-reminder': savePause,
-    'diary-name': form => commitAndFinish(data => { data.settings.diaryName = form.elements.diaryName.value.trim(); }, '名称已保存') };
+    'diary-name': form => { const name=checkedDiaryName(form.elements.diaryName.value); commitAndFinish(data => { data.settings.diaryName = name; }, '名称已保存'); } };
   try { await handlers[form.dataset.form](form); } catch (error) { formError(form, error); }
 });
 document.addEventListener('input', event => {
+  if (event.target.name === 'diaryName') { const count=document.getElementById('diary-name-count'); if(count) { const length=diaryNameLength(event.target.value.trim()); count.textContent=`${length} / ${DIARY_NAME_MAX} 字`; count.classList.toggle('is-error',length>DIARY_NAME_MAX); } }
   if (event.target.name === 'countValue' && event.target.closest('[data-form="animal"]')) event.target.closest('form').dataset.quantityEdited = 'true';
   if (event.target.dataset.filterField === 'search') { view.filters.search = event.target.value; view.historyLimit = 100; clearTimeout(searchTimer); searchTimer = setTimeout(render, 160); }
 });
 document.addEventListener('change', async event => {
   const field = event.target;
   try {
-    if (field.name === 'templateId') {
+    if (['pauseLength','resumeDate'].includes(field.name)) {
+      const form=field.closest('form'), custom=form.elements.pauseLength.value==='date', date=form.elements.resumeDate;
+      form.querySelector('.pause-date').hidden=!custom; date.disabled=!custom; date.required=custom;
+      const mode=form.elements.pauseLength.value, until=pauseResumeDate(mode,date.value);
+      form.querySelector('.pause-schedule').textContent=until?`${until} ${form.dataset.time} 恢复`:'暂停至手动恢复。';
+    }
+    else if (field.name === 'templateId') {
       const form = field.closest('form'), preset = PET_TEMPLATES.find(p => p.id === field.value); if (!preset) return;
       const preview = form.querySelector('.selected-pet-preview');
       preview.innerHTML = petIcon(preset.id, 42);
@@ -452,14 +474,37 @@ function readRoute() {
 window.addEventListener('hashchange', readRoute);
 window.addEventListener('storage', event => { if (event.key === STORAGE_KEY || event.key === null) { store.reload(); render(); } });
 // # 跨午夜和重新打开页面时刷新日期；不从未记录日期推断未喂食。
-let renderedDay = localDate(), renderedMinute = Math.floor(Date.now() / 60000);
-setInterval(() => { const minute = Math.floor(Date.now() / 60000); if (!document.hidden && minute !== renderedMinute) { renderedMinute = minute; renderedDay = localDate(); render(); } }, 15000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderedDay = localDate(); store.reload(); render(); } });
+let renderedMinute = Math.floor(Date.now() / 60000);
+function refreshClock() {
+  render();
+  const panel=overlay.querySelector('.task-manager');
+  if(panel) panel.outerHTML=tasksPanel(store.data,false,panel.dataset.reminderContainer||'');
+}
+setInterval(() => { const minute = Math.floor(Date.now() / 60000); if (!document.hidden && minute !== renderedMinute) { renderedMinute = minute; refreshClock(); } }, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { store.reload(); refreshClock(); } });
+// # 键盘弹出后使用可见视口限制弹窗高度，保留表单滚动与操作按钮。
+function fitVisibleViewport() {
+  const viewport=window.visualViewport, height=viewport?.height || innerHeight;
+  document.documentElement.style.setProperty('--visual-viewport-height',`${height}px`);
+  document.documentElement.style.setProperty('--keyboard-inset',`${Math.max(0,innerHeight-height-(viewport?.offsetTop||0))}px`);
+}
+window.visualViewport?.addEventListener('resize',fitVisibleViewport);
+window.visualViewport?.addEventListener('scroll',fitVisibleViewport);
+window.addEventListener('resize',fitVisibleViewport); fitVisibleViewport();
 // # 只清理从未编辑的旧默认配置；任何个人修改都会保留。
 if (!store.locked && !store.issue && await isUntouchedStarter(store.data)) {
   try { store.replace(seedData()); } catch (error) { store.issue = error.message; }
 }
+sorting = installSorting({
+  onSort(change) {
+    store.commit(data=>saveResidentOrder(data,change)); render(); toast('顺序已保存');
+    const list=[...app.querySelectorAll('[data-sort-list]')].find(node=>node.dataset.sortList===change.kind && node.dataset.container===change.containerId && (node.dataset.species || '')===change.species);
+    const item=list && [...list.children].find(node=>node.dataset.sortItem===change.focusItem);
+    (item?.matches('button') ? item : item?.querySelector('.animal-chip-label,.species-name,button'))?.focus({preventScroll:true});
+  },
+  onError(error) { render(); toast(error.message,true); }
+});
 readRoute();
-window.addEventListener('aqua-update-ready', () => checkUpdates(true));
+window.addEventListener('aqua-update-ready' , () => checkUpdates(true));
 // # 页面重开导致注册取消时，不在失效页面继续发起启动检查。
 setupPwa().then(registration => { if (registration) checkUpdates(true); });

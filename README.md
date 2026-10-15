@@ -4,14 +4,14 @@
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.4.4</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.4.5</strong> · 2026-10-15<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.4.jpg)
+![小小水族日记实际界面，演示数据](dist/media/cover-v1.4.5.jpg)
 
 ## 每天常用的，放在手边
 
 - **随手记时间**：喂食、吸便、加水一点就记；换水可填升数或比例。
-- **看看这个缸**：点进鱼缸，查看喂食月历与维护记录。
+- **看看这个缸**：点进鱼缸，查看维护月历与维护记录。
 - **认识每一位居民**：改物种和数量，给非黑壳虾个体取名字、上传头像。
 - **新增自动联动**：新增生物后，缸内名单与数量一起更新。
 - **照片留住观察**：观察记录支持照片，历史支持关键词搜索。
@@ -22,29 +22,33 @@
 
 ## 看一段实际操作
 
-[▶ 在线播放 v1.4.4 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.4.mp4)
+[▶ 在线播放 v1.4.5 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.4.5.mp4)
 
-视频展示修改日记名称、从空白创建缸、选择孔雀鱼形象、分类形象库、个体命名、头像裁剪与再次编辑、提醒完成/暂停、日历导出、观察照片、搜索、月历、版本检查和备份。简介页面使用原生视频播放器，可直接在手机播放。
+视频展示修改日记名称、从空白创建缸、选择孔雀鱼形象、同物种汇总与长按排序、同款颜色分组、个体命名、头像裁剪与再次编辑、提醒完成、暂停几天与提前恢复、日历导出、观察照片、搜索、月历、版本检查和备份。简介页面使用原生视频播放器，可直接在手机播放。
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.4.4.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.4.4.jpg" width="260" alt="缸内喂食月历"><br>缸内 · 喂食月历</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.4.4.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
+    <td align="center"><img src="dist/media/phone-home-v1.4.5.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.4.5.jpg" width="260" alt="缸内维护月历"><br>缸内 · 维护月历</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.4.5.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
   </tr>
 </table>
 
 截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。黄金玻璃猫孔雀鱼改用新照片参考的已审核通过的 r2 原生 SVG，显示金黄圆腹、红鳃、黑眼与黄扇尾；用户照片原文件不会公开，海报组合不代表实际同缸或数量。
 
-## 本次更新 · v1.4.4
+## 本次更新 · v1.4.5
 
-- 上传头像后可预览裁剪，支持拖动、缩放、双指操作、旋转和重置。
-- 已有照片头像可重新编辑；取消裁剪或取消整个编辑表单，保留已保存的头像。
-- 新上传头像保留完整取景的压缩副本；含照片备份会带上原取景和裁剪参数，恢复后仍可调整。
+- **同物种一起看**：同缸同物种一行汇总，颜色图标并排；原个体名字、头像和数量资料保留。
+- **长按排序**：长按拖动物种、颜色或居民卡片排序，各页面共用顺序，备份恢复后保留。
+- **形象归类**：同款五色独立成组，乌龟、鱼、虾分区；居民页只保留添加居民入口。
+- **首页更简洁**：自定义名称移至首页标题，最多20字并完整换行；顶栏改为🎣，吸便改为蓝色玻璃滴管。
+- **暂停几天**：提醒可暂停1、3、7天或指定恢复日，填写原因、调整日期或提前恢复；恢复后不补旧提醒。
+- **维护月历**：喂食、吸便、加水、换水放入同一个月历，每天用图标与×次数显示，点击日期查看详情。
+- **手机布局与清理说明**：统一日期输入、筛选及弹窗宽度和安全区；说明仅清空记录与重开空白日记的区别。
 
-<p align="center"><img src="dist/media/phone-avatar-v1.4.4.jpg" width="280" alt="头像裁剪实际界面，使用原生像素演示图片"><br>头像裁剪 · 演示数据</p>
+<p align="center"><img src="dist/media/phone-avatar-v1.4.5.jpg" width="280" alt="头像裁剪实际界面，使用原生像素演示图片"><br>头像裁剪 · 演示数据</p>
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.4.png)
+![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.4.5.png)
 
 已完成的验证与部署状态见 [验收记录](验收记录.md)。版本历史见 [CHANGELOG](CHANGELOG.md)。
 
@@ -87,4 +91,4 @@ Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「�
 
 右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
 
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.4.4 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.4.5 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

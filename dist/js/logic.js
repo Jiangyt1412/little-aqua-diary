@@ -75,7 +75,8 @@ export function shiftMonth(month, offset) {
   date.setMonth(date.getMonth() + offset);
   return localDate(date).slice(0, 7);
 }
-export function feedingMonth(data, containerId, month) {
+export const CARE_TYPES = ['feed', 'siphon', 'topup', 'water'];
+export function careMonth(data, containerId, month) {
   const [year, value] = month.split('-').map(Number);
   const first = new Date(year, value - 1, 1), totalDays = new Date(year, value, 0).getDate();
   const leading = (first.getDay() + 6) % 7;
@@ -84,10 +85,13 @@ export function feedingMonth(data, containerId, month) {
   records.forEach(r => { const day = localDate(r.timestamp); if (!byDay.has(day)) byDay.set(day, []); byDay.get(day).push(r); });
   const days = Array.from({ length: totalDays }, (_, i) => {
     const date = `${month}-${String(i + 1).padStart(2, '0')}`, items = byDay.get(date) || [];
-    return { date, day: i + 1, feedCount: items.filter(r => r.type === 'feed').length, records: items };
+    const counts = Object.fromEntries(CARE_TYPES.map(type => [type, items.filter(r => r.type === type).length]));
+    return { date, day: i + 1, counts, feedCount: counts.feed, careCount: Object.values(counts).reduce((n,value)=>n+value,0), records: items };
   });
-  return { year, month: value, leading, days, records, feedCount: records.filter(r => r.type === 'feed').length, feedDays: days.filter(d => d.feedCount).length, waterCount: records.filter(r => r.type === 'water').length, observeCount: records.filter(r => r.type === 'observe').length };
+  return { year, month: value, leading, days, records, counts: Object.fromEntries(CARE_TYPES.map(type=>[type,records.filter(r=>r.type===type).length])), feedCount: records.filter(r => r.type === 'feed').length, feedDays: days.filter(d => d.feedCount).length, waterCount: records.filter(r => r.type === 'water').length, observeCount: records.filter(r => r.type === 'observe').length };
 }
+// # 保留旧调用名称，月历现在统一统计四种维护。
+export const feedingMonth = careMonth;
 
 // # CSV 使用 UTF-8 BOM、双引号转义与公式注入防护，保留每一种记录的详情。
 export function csvText(data) {

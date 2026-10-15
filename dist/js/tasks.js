@@ -8,12 +8,15 @@ export function validDay(value) {
   return Number.isFinite(date.getTime()) && dayKey(date) === value;
 }
 export function taskState(data, rule, now = new Date()) {
-  if (rule.status === 'paused') return { ...rule, state: 'paused', nextDue: null, completed: false };
-  const records = data.records.filter(r => r.containerId === rule.containerId && r.type === rule.type && (!r.reminderId || r.reminderId === rule.id) && Date.parse(r.timestamp) <= now.getTime());
   const clock = rule.time || '08:00';
-  let anchor = new Date(`${rule.startDate || (rule.createdAt ? dayKey(new Date(rule.createdAt)) : dayKey(now))}T${clock}:00`);
+  const resumeAt = rule.status === 'paused' && rule.pauseUntil ? new Date(`${rule.pauseUntil}T${clock}:00`) : null;
+  if (rule.status === 'paused' && (!resumeAt || now < resumeAt)) return { ...rule, state: 'paused', resumeAt, nextDue: null, completed: false };
+  // # 定时暂停到期后按恢复日重新起算，不补出暂停期间的任务；不依赖后台计时器。
+  const autoResumed = !!resumeAt;
+  const records = data.records.filter(r => r.containerId === rule.containerId && r.type === rule.type && (!r.reminderId || r.reminderId === rule.id) && Date.parse(r.timestamp) <= now.getTime() && (!resumeAt || dayNumber(new Date(r.timestamp)) >= dayNumber(resumeAt)));
+  let anchor = resumeAt || new Date(`${rule.startDate || (rule.createdAt ? dayKey(new Date(rule.createdAt)) : dayKey(now))}T${clock}:00`);
   // # 旧版只有间隔天数的提醒继续从最近维护记录计算。
-  if (!rule.startDate && !rule.createdAt && records.length) {
+  if (!resumeAt && !rule.startDate && !rule.createdAt && records.length) {
     const last = [...records].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))[0];
     anchor = addDays(new Date(`${dayKey(new Date(last.timestamp))}T${clock}:00`), rule.days);
   }
@@ -23,7 +26,7 @@ export function taskState(data, rule, now = new Date()) {
   if (occurrence > now && !earlyDone && cycle > 0) occurrence = addDays(occurrence, -rule.days);
   const completed = earlyDone || records.some(r => Date.parse(r.timestamp) >= occurrence.getTime());
   const nextDue = completed ? addDays(occurrence, rule.days) : occurrence;
-  return { ...rule, state: nextDue <= now ? 'due' : 'upcoming', nextDue, completed };
+  return { ...rule, status: 'active', state: nextDue <= now ? 'due' : 'upcoming', nextDue, completed, autoResumed };
 }
 export function taskStates(data, now = new Date()) {
   return data.settings.reminders.map(rule => taskState(data, rule, now)).sort((a, b) => {
@@ -32,13 +35,22 @@ export function taskStates(data, now = new Date()) {
     return a.nextDue - b.nextDue;
   });
 }
-export function pauseTask(data, id, reason = '', now = new Date()) {
+export function pauseResumeDate(length, value = '', now = new Date()) {
+  if (length === 'manual') return '';
+  const date = length === 'date' ? value : ['1', '3', '7'].includes(String(length)) ? dayKey(addDays(now, Number(length))) : '';
+  if (!validDay(date) || date <= dayKey(now)) throw new Error('恢复日期请选择明天或之后。');
+  return date;
+}
+export function pauseTask(data, id, reason = '', now = new Date(), until = '') {
   const rule = data.settings.reminders.find(r => r.id === id); if (!rule) throw new Error('这个提醒已被移除。');
+  if (until && (!validDay(until) || until <= dayKey(now))) throw new Error('恢复日期请选择明天或之后。');
   rule.status = 'paused'; rule.pauseReason = String(reason).trim(); rule.pausedAt = now.toISOString(); rule.updatedAt = now.toISOString();
+  if (until) rule.pauseUntil = until; else delete rule.pauseUntil;
 }
 export function resumeTask(data, id, now = new Date()) {
   const rule = data.settings.reminders.find(r => r.id === id); if (!rule) throw new Error('这个提醒已被移除。');
   rule.status = 'active'; rule.startDate = dayKey(now); rule.updatedAt = now.toISOString();
+  delete rule.pauseUntil;
   // # 恢复不清除上次暂停原因，用户仍可查看或编辑。
 }
 const calendarText = value => String(value ?? '').replace(/\\/g, '\\\\').replace(/\r\n|\r|\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
@@ -53,14 +65,14 @@ function foldLine(line) {
 }
 const floating = date => `${dayKey(date).replaceAll('-', '')}T${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}00`;
 export function tasksCalendar(data, labels, now = new Date()) {
-  const active = data.settings.reminders.filter(rule => rule.status !== 'paused');
+  const active = data.settings.reminders.filter(rule => rule.status !== 'paused' || rule.pauseUntil);
   if (!active.length) throw new Error('没有正在运行的提醒。');
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Little Aqua Diary//Care Tasks//ZH', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:水族维护'];
   const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
   for (const rule of active) {
     const container = data.containers.find(c => c.id === rule.containerId); if (!container) continue;
     const title = `${container.name} · ${rule.title || labels[rule.type]?.label || rule.type}`;
-    const start = taskState(data, rule, now).nextDue;
+    const task = taskState(data, rule, now), start = task.nextDue || task.resumeAt;
     const end = new Date(start.getTime() + 5 * 60000);
     lines.push('BEGIN:VEVENT', `UID:task-${encodeURIComponent(rule.id)}@little-aqua-diary`, `DTSTAMP:${stamp}`, `DTSTART:${floating(start)}`, `DTEND:${floating(end)}`, `RRULE:FREQ=DAILY;INTERVAL=${rule.days}`, `SUMMARY:${calendarText(title)}`, 'DESCRIPTION:从水族日记导出的提醒快照。暂停或修改 App 任务后需手动修改日历。', 'STATUS:CONFIRMED', 'BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:PT0S', `DESCRIPTION:${calendarText(title)}`, 'END:VALARM', 'END:VEVENT');
   }
