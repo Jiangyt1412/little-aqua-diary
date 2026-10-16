@@ -52,6 +52,8 @@ export function additionSpeciesFields(data, containerId, record, selectedId, spe
 export function collectRecord(form, original, photoIds = []) {
   const fd = new FormData(form), type = String(fd.get('type'));
   const date = new Date(fd.get('timestamp')); if (!Number.isFinite(date.getTime())) throw new Error('请填写有效时间。');
+  // # 时间控件只显示到分钟；未改时间时保留旧记录的秒和毫秒，避免保存文字后重排。
+  const timestamp = original?.timestamp && date.getTime() === new Date(localDateTime(original.timestamp)).getTime() ? original.timestamp : date.toISOString();
   const details = original?.type === type ? { ...original.details } : {};
   const ignored = new Set(['type', 'containerId', 'timestamp', 'notes', 'photo-file', 'inventoryAnimalId']);
   if (type === 'water') { delete details.liters; delete details.percent; }
@@ -63,7 +65,7 @@ export function collectRecord(form, original, photoIds = []) {
   if (type === 'observe' && !details.text && !photoIds.length) throw new Error('写一段观察，或添加照片。');
   if (type === 'death') details.quantity = Number(details.quantity);
   if (type === 'add' && form.dataset.inventoryLinked === 'true') details.quantity = String(additionQuantity(details.quantity));
-  return { type, containerId: fd.get('containerId'), timestamp: date.toISOString(), details, notes: String(fd.get('notes') || '').trim(), ...(photoIds.length ? { photoIds: [...photoIds] } : {}) };
+  return { type, containerId: fd.get('containerId'), timestamp, details, notes: String(fd.get('notes') || '').trim(), ...(photoIds.length ? { photoIds: [...photoIds] } : {}) };
 }
 export function containerForm(c) {
   const selected = { goby: 'stream', turtle: 'meadow', parrot: 'lake' }[c?.art] || c?.art || 'meadow';
