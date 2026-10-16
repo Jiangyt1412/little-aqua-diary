@@ -1,4 +1,4 @@
-# 使用与备份（v1.5.1）
+# 使用与备份（v1.5.2）
 
 [打开水族日记](https://jiangyt1412.github.io/little-aqua-diary/) · [图文与视频简介](https://jiangyt1412.github.io/little-aqua-diary/intro.html)。主界面只有首页、记录、居民三个入口。
 
@@ -111,3 +111,5 @@ npm run check:release # 校验版本、更新内容、演示媒体及 PWA 资源
 `dist/js/data.js` 管理数据事务，`inventory.js` 管理数量联动，`media.js` 管理照片和恢复，`tasks.js` 管理提醒与日历，`pets.js` 与 `habitats.js` 管理原生像素素材，`starter-reset.js` 识别未修改的旧默认配置，`pwa.js` 和 `sw.js` 管理安装与缓存，`updates.js` 校验 `release.json` 并准备更新。
 
 实际验证范围见 [验收记录](../验收记录.md)。桌面 WebKit 手机视口测试不等同于实体 iPhone；软键盘、相册选取、系统下载和日历导入仍需在用户设备核对。
+
+物种名称按钮使用圆角矩形。触屏点击后不保留鼠标悬停背景；鼠标悬停或按下时有轻微高亮，键盘操作仍显示焦点。长按排序与点击编辑保持原有方式。
