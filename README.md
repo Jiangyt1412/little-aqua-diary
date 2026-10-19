@@ -4,9 +4,9 @@
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.6.0</strong> · 2026-10-19<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.6.1</strong> · 2026-10-19<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目简介</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-![小小水族日记实际界面，演示数据](dist/media/cover-v1.6.0.jpg)
+![小小水族日记实际界面，演示数据](dist/media/cover-v1.6.1.jpg)
 
 ## 每天常用的，放在手边
 
@@ -22,34 +22,39 @@
 
 ## 看一段实际操作
 
-[▶ 在线播放 v1.6.0 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.6.0.mp4)
+[▶ 在线播放 v1.6.1 演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [下载 MP4](dist/media/demo-v1.6.1.mp4)
 
-视频从恢复演示备份开始，展示左上角标题编辑、等大形象选择、三页连续滑动与详情右滑返回、三缸共享时间轴、按记录自动调整时间范围、关键词与缸筛选、记录编辑、观察照片、维护月历、编辑后七条记录完整显示、黑壳虾点击反馈、头像裁剪及版本检查。简介使用原生视频播放器。
+视频从恢复演示备份开始，展示左上角标题编辑、等大形象选择、三页连续滑动与详情右滑返回、三缸共享时间轴、按记录自动调整时间范围、关键词与缸筛选、记录编辑、观察照片、维护月历、编辑后七条记录完整显示、黑壳虾点击反馈、头像裁剪、提醒连续管理、暂停恢复、换水量及版本检查。简介使用原生视频播放器。
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.6.0.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.6.0.jpg" width="260" alt="缸内维护月历"><br>缸内 · 维护月历</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.6.0.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
+    <td align="center"><img src="dist/media/phone-home-v1.6.1.jpg" width="260" alt="首页，一键记录"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.6.1.jpg" width="260" alt="缸内维护月历"><br>缸内 · 维护月历</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.6.1.jpg" width="260" alt="居民名字与头像"><br>居民 · 名字与头像</td>
   </tr>
 </table>
 
 截图和视频来自隔离的演示浏览器。演示记录与名字均为示例，图片附件是像素插画，不是用户的个人照片；应用初始数据没有虚构的维护记录。黄金玻璃猫孔雀鱼改用新照片参考的已审核通过的 r2 原生 SVG，显示金黄圆腹、红鳃、黑眼与黄扇尾；用户照片原文件不会公开，海报组合不代表实际同缸或数量。
 
-## 本次更新 · v1.6.0
+## 本次更新 · v1.6.1
 
-- **窗口过渡**：打开、关闭和窗口内切换更连贯；减少动态效果时保持即时操作。
-- **自动时间轴**：按实际记录范围生成共享刻度，随窗口宽度重新分轨，保留编辑、搜索和照片。
-- **详情返回**：从左侧右滑回来源页并恢复位置，也可点“返回”。
-- **统一对齐**：页面和窗口共用边距，记录图标、文字及按钮对齐。
+- **流程不中断**：空白日记建缸后继续记账；键盘跳到主要内容保留当前页面。
+- **提醒连续管理**：创建、编辑、暂停、恢复和完成后留在任务列表；换水提醒可填写水量，编辑保留任务关联。
+- **卡片与文字对齐**：同行鱼缸的维护栏对齐，统一控件圆角、记录字号与暂停状态的可读性。
+- **时间轴更紧凑**：继续按记录范围缩放，密集记录适量横滑；只为带照片的分轨保留照片空间。
+- **状态反馈更清楚**：显示加载和保存状态，展开、成功与错误有轻量过渡；尊重减少动态效果设置。
 
-<table><tr><td align="center"><img src="dist/media/phone-dialog-v1.6.0.jpg" width="260" alt="窗口实际界面，演示资料"><br>窗口 · 实际界面</td><td align="center"><img src="dist/media/phone-back-v1.6.0.jpg" width="260" alt="详情右滑返回中的连续预览，演示资料"><br>右滑返回 · 交互过程</td></tr></table>
+<table><tr><td align="center"><img src="dist/media/phone-dialog-v1.6.1.jpg" width="260" alt="窗口实际界面，演示资料"><br>窗口 · 实际界面</td><td align="center"><img src="dist/media/phone-back-v1.6.1.jpg" width="260" alt="详情右滑返回中的连续预览，演示资料"><br>右滑返回 · 交互过程</td></tr></table>
 
-![按缸共享时间轴，演示数据](dist/media/phone-history-v1.6.0.jpg)
+<p align="center"><img src="dist/media/phone-reminder-v1.6.1.jpg" width="280" alt="提醒暂停与原因，演示数据"><br>提醒 · 连续管理</p>
 
-<p align="center"><img src="dist/media/phone-avatar-v1.6.0.jpg" width="280" alt="头像裁剪实际界面，使用原生像素演示图片"><br>头像裁剪 · 演示数据</p>
+![按缸共享时间轴，演示数据](dist/media/phone-history-v1.6.1.jpg)
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.6.0.png)
+<p align="center"><img src="dist/media/phone-avatar-v1.6.1.jpg" width="280" alt="头像裁剪实际界面，使用原生像素演示图片"><br>头像裁剪 · 演示数据</p>
+
+![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.6.1.png)
+
+本次三轮审计与桌面、手机对比见 [产品审计](docs/AUDIT-v1.6.1.md)。
 
 已完成的验证与部署状态见 [验收记录](验收记录.md)。各版主要区别与编号规则见 [版本一览](docs/VERSIONS.md)；详细历史见 [CHANGELOG](CHANGELOG.md)。
 
@@ -92,4 +97,4 @@ Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「�
 
 右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
 
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.0 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.1 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

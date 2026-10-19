@@ -9,7 +9,7 @@ import { editAvatar } from './avatar-crop.js';
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
-import { dismissDialog, finishDialogMotion, reducedMotion } from './motion.js';
+import { dismissDialog, finishDialogMotion, reducedMotion, installFeedback } from './motion.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
@@ -27,10 +27,23 @@ const view = { page: 'home', tankId: '', month: localDate().slice(0, 7), selecte
 const app = document.getElementById('app'), overlay = document.getElementById('overlay-root');
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
 const quickTapTimes = new Map();
-let afterCreatingContainer = null;
+let afterCreatingContainer = null, reminderContainerId = '';
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
 let announcedVersion = '', sorting, navigation;
 const timelinePositions=new Map();
+const busyControls = new WeakMap();
+// # 持久写入期间明确显示进度，并保存每个控件原来的可用状态。
+function savingState(busy, label = '保存中…') {
+  modalBusy = busy; overlay.querySelector('dialog')?.setAttribute('aria-busy', String(busy));
+  overlay.querySelectorAll('button,input,select,textarea').forEach(control => {
+    if (busy) { busyControls.set(control,{disabled:control.disabled,html:control.tagName==='BUTTON'?control.innerHTML:null});control.disabled=true; }
+    else { const previous=busyControls.get(control);if(previous){control.disabled=previous.disabled;if(previous.html!==null)control.innerHTML=previous.html;busyControls.delete(control);} }
+  });
+  if (busy) {
+    const submit=overlay.querySelector('button[type="submit"],button[data-action="confirm"]');
+    if(submit)submit.innerHTML=`<span class="busy-pixel" aria-hidden="true"></span>${e(label)}`;
+  }
+}
 function paintUpdates() {
   const panel = overlay.querySelector('[data-update-panel]');
   if (panel) panel.outerHTML = updatePanel(updateState);
@@ -74,7 +87,11 @@ function render() {
 function toast(message, error = false, undo = '') {
   const root = document.getElementById('toast-root'); undoRecordId = undo || null;
   root.innerHTML = `<div class="toast ${error ? 'error' : ''}">${icon(error ? 'bell' : 'check', 16)}<span>${e(message)}</span>${undo ? '<button data-action="undo-record">撤销</button>' : ''}</div>`;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { root.innerHTML = ''; undoRecordId = null; }, undo || error ? 6500 : 2800);
+  const current=root.firstElementChild;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => {
+    const finish=()=>{current.remove();if(!root.children.length)undoRecordId=null;};
+    if(reducedMotion()){finish();return;}current.classList.add('toast-leaving');setTimeout(finish,160);
+  }, undo || error ? 6500 : 2800);
 }
 function discardPhotoDraft() {
   if (photoDraft) { photoDraft.abort.abort(); photoDraft.urls.forEach(url => URL.revokeObjectURL(url)); }
@@ -187,16 +204,16 @@ async function editDraftAvatar() {
   finally { draft.busy = false; if (photoDraft === draft && submit) submit.disabled = false; }
 }
 // # 新照片先写入，元数据成功后才显示保存；失败清理新增照片并保留旧数据。
-async function saveWithPhotos(form, mutator, message) {
+async function saveWithPhotos(form, mutator, message, afterSave) {
   const draft = photoDraft;
   if (modalBusy || draft?.busy) throw new Error('照片仍在处理，请稍等。');
   const ids = draft ? [...new Set([...draft.ids, ...(draft.kind === 'avatar' && draft.ids.length && draft.avatarSourceId ? [draft.avatarSourceId] : [])])] : [];
   const assets = draft ? ids.map(id => draft.assets.get(id)).filter(Boolean) : [];
-  modalBusy = true; overlay.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  savingState(true);
   try { await photos.putMany(assets); store.commit(mutator); }
   catch (error) { try { await photos.remove(assets.map(a => a.id)); } catch {} throw error; }
-  finally { modalBusy = false; overlay.querySelectorAll('button').forEach(b => { b.disabled = false; }); }
-  render(); closeSheet(); toast(message);
+  finally { savingState(false); }
+  render(); if (afterSave) afterSave(); else closeSheet(); toast(message);
 }
 function quickRecord(type, cid, reminderId = '') {
   if (!ensureContainers()) return;
@@ -205,20 +222,23 @@ function quickRecord(type, cid, reminderId = '') {
   quickTapTimes.set(key, now);
   const timestamp = new Date().toISOString(), id = uid('record');
   store.commit(data => { if (!data.containers.some(c => c.id === cid)) throw new Error('这个缸已被移除。'); if (reminderId && !data.settings.reminders.some(r => r.id === reminderId && taskState(data,r).state !== 'paused' && r.containerId === cid && r.type === type)) throw new Error('提醒已暂停或移除。'); data.records.push({ id, type, containerId: cid, timestamp, details: {}, notes: '', createdAt: timestamp, updatedAt: timestamp, ...(reminderId ? { reminderId } : {}) }); });
-  if (overlay.querySelector('dialog')) closeSheet(); render();
+  render();
+  if (reminderId) openReminders(reminderContainerId);
+  else if (overlay.querySelector('dialog')) closeSheet();
   toast(`${TYPES[type].label} · ${timeLabel(timestamp)}`, false, id);
 }
-function openRecord(type = 'observe', containerId, record, forceForm = false) {
-  if (!ensureContainers()) return;
+function openRecord(type = 'observe', containerId, record, forceForm = false, reminderId = '') {
+  if (!ensureContainers(id => openRecord(type, id, record, forceForm, reminderId))) return;
   const cid = containerId || store.data.containers[0].id;
   if (!record && !forceForm && ['feed', 'siphon', 'topup'].includes(type)) return quickRecord(type, cid);
   const name = store.data.containers.find(c => c.id === cid)?.name || '';
   if (!openSheet(`${TYPES[type].label} · ${name}`, recordForm(store.data, cid, type, record), TYPES[type].icon)) return;
+  if (reminderId) { document.getElementById('record-form').dataset.reminder = reminderId; reminderBackButton(); }
   recordDraft = record ? structuredClone(record) : null;
   if (type === 'observe' || record?.photoIds?.length) initializePhotoDraft(record?.photoIds || []);
 }
 function chooseRecord(containerId) {
-  if (!ensureContainers()) return;
+  if (!ensureContainers(id => chooseRecord(id))) return;
   const cid = containerId || store.data.containers[0].id;
   openSheet('记一笔', `<label class="field"><span>缸</span><select id="chooser-container">${store.data.containers.map(c => `<option value="${e(c.id)}" ${cid === c.id ? 'selected' : ''}>${e(c.name)}</option>`).join('')}</select></label><div class="type-chooser">${Object.entries(TYPES).map(([id, type]) => `<button data-action="chosen-record" data-type="${id}"><span class="chooser-icon ${type.color}">${icon(type.icon, 23)}</span>${type.label}</button>`).join('')}</div>`, 'book');
 }
@@ -234,6 +254,12 @@ async function saveRecord(form) {
     const old = data.records.find(r => r.id === id);
     if (form.dataset.id && !old) throw new Error('这条记录已被其他窗口删除。');
     const entry = { ...values, id, createdAt: old?.createdAt || now, updatedAt: now };
+    // # 从提醒完成换水时也填写水量；编辑旧完成记录保留原提醒引用。
+    if (form.dataset.reminder) {
+      const rule = data.settings.reminders.find(r => r.id === form.dataset.reminder);
+      if (!rule || taskState(data,rule).state === 'paused' || rule.containerId !== entry.containerId || rule.type !== entry.type) throw new Error('提醒已变化，请重新打开。');
+      entry.reminderId = rule.id;
+    } else if (old?.reminderId) entry.reminderId = old.reminderId;
     if (entry.type === 'add') {
       if (removedAdditionProfiles(data, entry, selectedId).some(m => !accepted.has(m.id))) throw new Error('居民名字或头像已有变化，请重新编辑并确认。');
       putAddition(data, entry, selectedId); return;
@@ -245,7 +271,7 @@ async function saveRecord(form) {
       if (entry.type === 'water') { delete linked.details.liters; delete linked.details.percent; for (const key of ['liters', 'percent']) if (entry.details[key] !== undefined) linked.details[key] = entry.details[key]; }
     }
     data.records = data.records.filter(r => r.id !== id); data.records.push(entry);
-  }, form.dataset.id ? '修改已保存' : values.type === 'add' ? '记录与居民已同步' : '已记录');
+  }, form.dataset.id ? '修改已保存' : values.type === 'add' ? '记录与居民已同步' : '已记录', form.dataset.reminder ? () => openReminders(reminderContainerId) : null);
   if (removed.length) confirmAction('修改新增数量？', `将移除 ${removed.length} 个已有名字或头像的新增个体。`, perform, '确认修改');
   else await perform();
 }
@@ -311,13 +337,26 @@ function openNewAnimal(containerId = '', templateId = '') {
   if (!ensureContainers(id => openSheet('添加居民', animalForm(store.data, null, id, templateId), 'fish'))) return;
   openSheet('添加居民', animalForm(store.data, null, containerId || store.data.containers[0].id, templateId), 'fish');
 }
-function openReminders(containerId = '') { openSheet('照顾日常', tasksPanel(store.data, false, containerId), 'bell'); }
+function openReminders(containerId = '') { reminderContainerId = containerId; openSheet('照顾日常', tasksPanel(store.data, false, containerId), 'bell'); }
+// # 提醒的子表单有返回入口，保存、暂停和完成后回到同一份任务列表。
+function reminderEditor(title, content, glyph = 'bell') {
+  if (!openSheet(title, content, glyph)) return;
+  reminderBackButton();
+}
+function reminderBackButton() {
+  const titleNode = overlay.querySelector('.sheet-title');
+  titleNode.querySelector('svg')?.remove();
+  titleNode.insertAdjacentHTML('afterbegin', `<button type="button" class="icon-button sheet-back" data-action="reminders" data-container="${e(reminderContainerId)}" aria-label="返回任务提醒">${icon('back',18)}</button>`);
+  const cancel = overlay.querySelector('.sheet-footer [data-action="close"]');
+  if (cancel) { cancel.dataset.action = 'reminders'; cancel.dataset.container = reminderContainerId; }
+}
+function finishReminder(callback, message) { store.commit(callback); render(); openReminders(reminderContainerId); toast(message); }
 function saveReminder(form) {
   const fd = new FormData(form), id = form.dataset.id || uid('reminder'), now = new Date().toISOString();
   const values = { containerId: String(fd.get('containerId')), type: String(fd.get('type')), days: Number(fd.get('days')), time: String(fd.get('time')), startDate: String(fd.get('startDate')), title: String(fd.get('title') || '').trim() };
   if (!['feed', 'siphon', 'water', 'topup'].includes(values.type)) throw new Error('请选择喂食、吸便、换水或加水任务。');
   if (!Number.isInteger(values.days) || values.days < 1 || values.days > 3650) throw new Error('间隔请填写 1 至 3650 的整数天数。');
-  commitAndFinish(data => {
+  finishReminder(data => {
     const index = data.settings.reminders.findIndex(r => r.id === id), old = data.settings.reminders[index];
     if (form.dataset.id && !old) throw new Error('这个提醒已被其他窗口删除。');
     const next = { ...old, ...values, id, status: old?.status || 'active', createdAt: old?.createdAt || now, updatedAt: now };
@@ -328,7 +367,7 @@ function saveReminder(form) {
 function savePause(form) {
   const fd = new FormData(form), reason = String(fd.get('pauseReason') || '').trim(), now = new Date();
   const until = pauseResumeDate(String(fd.get('pauseLength')), String(fd.get('resumeDate') || ''), now);
-  commitAndFinish(data => pauseTask(data, form.dataset.id, reason, now, until), until ? `已暂停，${until} 恢复` : '已暂停，等待手动恢复');
+  finishReminder(data => pauseTask(data, form.dataset.id, reason, now, until), until ? `已暂停，${until} 恢复` : '已暂停，等待手动恢复');
 }
 async function exportJSON() {
   if (store.locked) { downloadFile(`水族日记-原始数据-${localDate()}.txt`, store.raw ?? '', 'text/plain'); toast('原始数据已导出'); return; }
@@ -348,10 +387,10 @@ async function importFile(file) {
     let raw; try { raw = JSON.parse((await file.text()).replace(/^\uFEFF/, '')); } catch { throw new Error('无法解析 JSON，请选择日记备份。'); }
     const validated = validateData(raw), restored = await prepareRestore(raw, validated);
     confirmAction('恢复备份？', '当前名单和记录将被替换。', async () => {
-      modalBusy = true; overlay.querySelectorAll('button').forEach(b => { b.disabled = true; });
+      savingState(true,'恢复中…');
       try { await photos.putMany(restored.assets); restored.data.revision = (Number(store.data.revision) || 0) + 1; store.replace(restored.data); }
       catch (error) { try { await photos.remove(restored.assets.map(a => a.id)); } catch {} throw error; }
-      finally { modalBusy = false; overlay.querySelectorAll('button').forEach(b => { b.disabled = false; }); }
+      finally { savingState(false); }
       view.filters = emptyFilters(); view.residentContainer = ''; view.selectedDay = ''; render(); closeSheet(); toast('备份已恢复');
     }, '确认恢复', `<div class="import-summary">${e(file.name)}<p>${validated.containers.length} 个缸 · ${validated.records.length} 条记录 · ${restored.assets.length} 张照片</p></div><button class="text-link" data-action="export-json">先备份当前数据</button>`);
   } catch (error) { toast(error.message, true); }
@@ -368,12 +407,12 @@ const actions = {
   },
   close: closeSheet,
   reminders: b => openReminders(b?.dataset.container || ''),
-  'add-reminder': b => { if (ensureContainers(id => openSheet('创建提醒', reminderForm(store.data, null, id), 'bell'))) openSheet('创建提醒', reminderForm(store.data, null, b.dataset.container), 'bell'); },
-  'edit-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) openSheet('编辑提醒', reminderForm(store.data, r), 'bell'); },
-  'pause-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) openSheet('暂停提醒', pauseForm({...r,status:taskState(store.data,r).status}), 'pause'); },
-  'resume-reminder': b => commitAndFinish(data => resumeTask(data, b.dataset.id), '提醒已恢复'),
-  'delete-reminder': b => confirmAction('删除提醒？', '已有维护记录会保留。', () => commitAndFinish(data => { data.settings.reminders = data.settings.reminders.filter(r => r.id !== b.dataset.id); }, '提醒已删除'), '删除提醒'),
-  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && taskState(store.data,r).state !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) quickRecord(r.type, r.containerId, r.id); },
+  'add-reminder': b => { if (ensureContainers(id => reminderEditor('创建提醒', reminderForm(store.data, null, id)))) reminderEditor('创建提醒', reminderForm(store.data, null, b.dataset.container || reminderContainerId)); },
+  'edit-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) reminderEditor('编辑提醒', reminderForm(store.data, r)); },
+  'pause-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) reminderEditor('暂停提醒', pauseForm({...r,status:taskState(store.data,r).status}), 'pause'); },
+  'resume-reminder': b => finishReminder(data => resumeTask(data, b.dataset.id), '提醒已恢复'),
+  'delete-reminder': b => confirmAction('删除提醒？', '已有维护记录会保留。', () => finishReminder(data => { data.settings.reminders = data.settings.reminders.filter(r => r.id !== b.dataset.id); }, '提醒已删除'), '删除提醒'),
+  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && taskState(store.data,r).state !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) r.type === 'water' ? openRecord(r.type, r.containerId, null, true, r.id) : quickRecord(r.type, r.containerId, r.id); },
   'export-calendar': () => { downloadFile('水族维护提醒.ics', tasksCalendar(store.data, TYPES), 'text/calendar'); toast('日历文件已导出'); },
   'pet-gallery': () => openSheet('居民形象', petGallery(), 'fish'),
   'use-pet-template': b => openNewAnimal('', b.dataset.template),
@@ -435,6 +474,7 @@ const actions = {
   'clear-records': () => confirmAction('仅清空维护记录？', `将清空 ${store.data.records.length} 条记录。${CLEAN_RECORDS_COPY} 操作不能直接撤销。`, () => commitAndFinish(clearDiaryRecords, '维护记录已清空'), '清空维护记录', '<button class="text-link" data-action="export-json">先备份当前数据</button>')
 };
 document.addEventListener('click', async event => {
+  if (event.target.closest('.skip-link')) { event.preventDefault(); document.getElementById('main')?.focus(); return; }
   const b = event.target.closest('[data-action]'); if (!b || b.disabled || !Object.hasOwn(actions, b.dataset.action)) return;
   event.preventDefault(); try { await actions[b.dataset.action](b); } catch (error) { toast(error.message, true); }
 });
@@ -526,6 +566,7 @@ sorting = installSorting({
   },
   onError(error) { render(); toast(error.message,true); }
 });
+installFeedback();
 navigation=installNavigation({route:()=>view.page==='tank'?`tank/${encodeURIComponent(view.tankId)}`:view.page,content:route=>route.startsWith('tank/')?tankPage(store.data,{...view,page:'tank',tankId:decodeURIComponent(route.slice(5))}):({home:homePage,history:historyPage,residents:residentsPage}[route])(store.data,{...view,page:route}),navigate:navigateRoute,hydrate:root=>hydratePhotos(root,photos),position:root=>positionTimelines(root,timelinePositions)});
 readRoute();
 window.addEventListener('aqua-update-ready' , () => checkUpdates(true));
