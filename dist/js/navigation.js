@@ -9,7 +9,7 @@ export function installNavigation({route,content,navigate,hydrate,position}){
   const eligible=target=>!!target.closest('#main')&&(PRIMARY_ROUTES.includes(route())||route().startsWith('tank/'))&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('resident-sorting')&&!target.closest('input,textarea,select,button,a,summary,[data-sort-list],[data-swipe-ignore],.container-tabs,.photo-gallery,.avatar-crop-dialog');
   function makePane(html){const main=document.createElement('div');main.className='main-wrap swipe-main';main.innerHTML=html;main.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));hydrate(main);return main;}
   function prepare(){for(const key of PRIMARY_ROUTES)prepared.set(key,makePane(content(key)));}
-  function cleanup(){stage?.layer.remove();stage=null;gesture=null;finishing=false;document.body.classList.remove('page-swiping');}
+  function cleanup(){stage?.animations?.forEach(animation=>animation.cancel());stage?.layer.remove();stage=null;gesture=null;finishing=false;document.body.classList.remove('page-swiping');}
   function cancel(){if(stage||gesture?.locked)suppress=performance.now()+250;cleanup();}
   function setup(target,direction,kind='primary',scroll=0){
     if(stage)return;const source=document.getElementById('main'),header=document.querySelector('.site-header'),nav=document.querySelector('.bottom-nav'),top=header.getBoundingClientRect().bottom,bottom=getComputedStyle(nav).display==='none'?0:innerHeight-nav.getBoundingClientRect().top,width=innerWidth;
@@ -26,10 +26,15 @@ export function installNavigation({route,content,navigate,hydrate,position}){
     b.style.transform=`translate3d(${kind==='back'?(-width+dx)*.24:dx+direction*width}px,0,0)`;
   }
   async function settle(commit){
-    if(!stage||finishing)return;finishing=true;const current=stage,duration=reduced()?0:240;suppress=performance.now()+duration+60;
-    for(const pane of [current.a,current.b])pane.style.transition=`transform ${duration}ms cubic-bezier(.22,.8,.3,1)`;
+    if(!stage||finishing)return;finishing=true;const current=stage,duration=reduced()?0:current.kind==='forward'?300:240;suppress=performance.now()+duration+60;
+    // # 显式提供起终帧，避免点击时浏览器把同一任务内的 CSS 起终状态合并成一次跳变。
+    const panes=[current.a,current.b],starts=panes.map(pane=>pane.style.transform);
     move(commit?-current.direction*current.width:0);
-    await new Promise(resolve=>setTimeout(resolve,duration));if(stage!==current)return;
+    if(duration){
+      current.animations=panes.map((pane,index)=>pane.animate([{transform:starts[index]},{transform:pane.style.transform}],{duration,easing:'cubic-bezier(.22,.8,.3,1)'}));
+      await Promise.allSettled(current.animations.map(animation=>animation.finished));
+    }
+    if(stage!==current)return;
     if(commit){navigate(current.target,{scroll:current.scroll});window.scrollTo({top:current.scroll,behavior:'instant'});await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);}
     if(stage===current)cleanup();
   }
