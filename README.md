@@ -1,64 +1,59 @@
-<p align="center"><img src="dist/icon-192.png" width="56" alt="小猫骑龟钓鱼 · 小小水族日记"></p>
-
 <h1 align="center">小小水族日记</h1>
+<p align="center">给家里的每一个小世界，留一点日常。</p>
 
-<p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
+[![照顾好，也记录好。v1.6.5 产品短片封面，真实 App 界面与演示数据；点击播放](dist/media/cover-v1.6.5.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-<p align="center"><strong>Version 1.6.4</strong> · 2026-10-20<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">观看实际操作视频</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开水族日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">观看 32 秒产品短片 ▶</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">浏览完整介绍</a></p>
+<p align="center"><strong>Version 1.6.5</strong> · 2026-10-20<br>手机优先 · 本地保存 · 从空白开始</p>
 
-[![v1.6.4 实际界面，演示数据；点击观看操作视频](dist/media/cover-v1.6.4.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+## 把日常，养成喜欢。
 
-## 本次更新 · v1.6.4
+[![喂食一点记录，进入鱼缸回看；广告短片中的真实操作镜头，演示数据](dist/media/product-preview-v1.6.5.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-- **主分区用按钮切换**：首页、记录、居民取消左右滑动切页，触摸、鼠标拖动和触控板横滑均不再自动切页。
-- **保留缸内与图表操作**：鱼缸详情仍可从左侧右滑返回，时间轴横向滚动、居民长按排序和按钮切页过渡保留。
+**轻轻一点，照顾有了记录。** 喂食、吸便、加水记下此刻，换水多少也能一起留下。
 
-本次调整页面切换方式，记录、居民、照片和备份格式保持兼容。
+[32 秒产品短片 · MP4](dist/media/demo-v1.6.5.mp4) · [完整实际操作 · MP4](dist/media/walkthrough-v1.6.5.mp4)
 
-## 最新界面
+短片包含分镜、真实界面特写与原创配乐；完整录屏保留点击、输入、拖动和表单操作。GitHub 图片可点击前往播放器。
 
-<table>
-  <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.6.4.jpg" width="280" alt="v1.6.4 首页，演示缸与一键维护"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.6.4.jpg" width="280" alt="v1.6.4 居民，孔雀鱼与其他物种的卡片等大"><br>居民 · 卡片统一大小</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="dist/media/phone-history-v1.6.4.jpg" width="280" alt="v1.6.4 记录，各缸共用自动调整范围的时间轴"><br>记录 · 按缸对照</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.6.4.jpg" width="280" alt="v1.6.4 缸内，四类维护行为及次数共用月历"><br>缸内 · 维护月历</td>
-  </tr>
-</table>
+## 每一位，都值得被记住。
 
-## 实际操作视频
+![居民姓名、头像与像素形象，真实 App 界面，演示数据](dist/media/story-residents-v1.6.5.jpg)
 
-[▶ 播放 v1.6.4 完整演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [查看 MP4 文件](dist/media/demo-v1.6.4.mp4)
+选择像素形象，取一个名字。也能用自己的照片留住它的模样，拖动、缩放或旋转裁剪头像。
 
-真实点击、输入与拖动，展示主分区滑动后停留原页、底部导航按钮切页、鱼缸过渡与右滑返回，再操作记录、照片、月历、头像与提醒。
+## 每一次照顾，都留在日常里。
 
-<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo"><img src="dist/media/tank-transition-v1.6.4.gif" width="300" alt="v1.6.4 鱼缸进入与返回的实际操作动图，演示数据"></a><br>鱼缸进出 · 实际录屏预览</p>
+![按缸排列的共享时间轴与四类维护月历，真实 App 界面，演示数据](dist/media/story-records-v1.6.5.jpg)
 
-截图与录像均使用独立演示数据。演示记录和名字为示例，照片附件是原生像素插画，不含用户的个人照片。App 首次打开仍为空白日记。
-
-## 每天常用的，放在手边
-
-- 喂食、吸便、加水一点记录时间；换水可填升数或比例，观察可附照片。
-- 自建鱼缸和居民，修改物种与数量；个体可命名、上传和裁剪头像。
-- 按缸回看记录和月历，搜索关键词；提醒可暂停、填写原因并恢复。
-- 在 App 内检查更新，导出包含记录、居民与照片的完整备份。
-
-主界面保留首页、记录、居民三个入口。
+按缸对照时间轴，在月历里看见维护的节奏。搜索关键词，回看记录与观察照片。
 
 <details>
-<summary>更多界面与像素形象</summary>
+<summary><strong>提醒暂停、完整手机截图与像素形象</strong></summary>
 
-<table><tr><td align="center"><img src="dist/media/phone-avatar-v1.6.4.jpg" width="280" alt="v1.6.4 头像裁剪，使用像素演示插画"><br>头像 · 再次调整取景</td><td align="center"><img src="dist/media/phone-reminder-v1.6.4.jpg" width="280" alt="v1.6.4 提醒管理，演示暂停与原因"><br>提醒 · 暂停与恢复</td></tr></table>
+![提醒可暂停、填写原因并按恢复日期继续，真实界面，演示数据](dist/media/story-reminders-v1.6.5.jpg)
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.6.4.png)
+提醒在 App 内显示，另支持导出日历文件。暂停后，已经导入系统日历的内容需要另行修改。
 
-黄金玻璃猫采用审核通过的 r2 原生 SVG，金黄圆腹、红鳃、黑眼与黄扇尾。海报直接使用 App 素材，不代表实际同缸或数量。
+<table>
+<tr><td align="center"><img src="dist/media/phone-home-v1.6.5.jpg" width="270" alt="v1.6.5 首页完整截图，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.5.jpg" width="270" alt="v1.6.5 居民完整截图，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.6.5.jpg" width="270" alt="v1.6.5 记录完整截图，演示数据"><br>共享时间轴</td><td align="center"><img src="dist/media/phone-tank-v1.6.5.jpg" width="270" alt="v1.6.5 月历完整截图，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.5.jpg" width="270" alt="v1.6.5 头像裁剪截图，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-reminder-v1.6.5.jpg" width="270" alt="v1.6.5 提醒管理截图，演示数据"><br>暂停与恢复</td></tr>
+</table>
+
+![原生居民形象与四款空缸模板](dist/media/pixel-library-v1.6.5.png)
 
 </details>
 
-此前 v1.6.1 三轮审计的桌面、手机前后截图见 [产品审计](docs/AUDIT-v1.6.1.md)。本版实际验证见 [验收记录](验收记录.md)，版本区别与编号见 [版本一览](docs/VERSIONS.md)。
+截图、录屏和短片均使用独立演示资料。名字与记录为示例，头像和照片附件为项目像素插画，不包含用户的个人资料。手机外框是展示排版，屏幕内容来自实际 App。首次打开仍是空白日记。
+
+## 本次更新 · v1.6.5
+
+- **项目介绍重做**：统一封面、图文叙事、界面特写和深浅绿色视觉；介绍页适配桌面和手机。
+- **新增发布短片**：32 秒、1080p、30 fps，真实界面剪辑与原创配乐；提供中文字幕、播放状态和完整操作演示切换。
+- 本次只更新项目展示与发布信息，日记功能、照片和备份格式沿用 v1.6.4。
+
+[各版本的区别](docs/VERSIONS.md) · [完整更新记录](CHANGELOG.md) · [实际验收范围](验收记录.md)
 
 ## 从原网址迁移
 
@@ -99,4 +94,4 @@ Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「�
 
 右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
 
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.4 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.5 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- # 产品镜头由真实截图与操作录像合成；手机外框仅为通用展示容器。 -->
+<html lang="zh-CN"><meta charset="utf-8"><title>水族日记 · 产品展示制作</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:#183a30;background:#f7f8f2}#stage{width:1920px;height:1080px;position:relative;overflow:hidden}.scene{position:absolute;inset:0;overflow:hidden;opacity:0;background:#f7f8f2}.scene.on{opacity:1}.mint{background:#e6eee2}.night{background:#173a32;color:#f5f4e9}.blue{background:#e2ecec}.brand{position:absolute;left:112px;top:64px;display:flex;align-items:center;gap:16px;font-size:24px;font-weight:600;letter-spacing:2px}.brand img{width:58px;height:58px;border-radius:15px}.eyebrow{font-size:19px;letter-spacing:3px;font-weight:500;color:#61796a;margin:0 0 25px}.night .eyebrow{color:#b6ceba}h1,h2,p{margin:0}h1,h2{font-size:104px;line-height:1.22;letter-spacing:-3px;font-weight:650}h2{font-size:88px;letter-spacing:-2px}.copy{position:absolute;left:136px;top:274px;z-index:3}.desc{font-size:27px;line-height:1.85;letter-spacing:.7px;color:#667c6e;margin-top:35px}.night .desc{color:#b6ceba}.bottom-note{position:absolute;bottom:37px;left:112px;font-size:17px;letter-spacing:1px;color:#77897a;z-index:20}.night .bottom-note{color:#a6bca9}.phone{position:absolute;width:414px;height:894px;border-radius:53px;padding:9px;background:linear-gradient(125deg,#738178,#fff 24%,#d9e0d5 76%,#83978c);box-shadow:0 2px 4px #142d2618,0 33px 60px -17px #183b3240;overflow:hidden;transform-origin:center}.screen{width:100%;height:100%;border-radius:44px;overflow:hidden;position:relative;background:#f6f7ef;border:1px solid #ced8cd}.screen>img,.screen>video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}.screen video{opacity:0}.phone.small{width:325px;height:703px;border-radius:43px;padding:8px}.phone.small .screen{border-radius:35px}.pet{position:absolute;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 10px 0 #173a3205)}.pet.big{width:170px;height:170px}.pet.medium{width:100px;height:100px}.hairline{position:absolute;height:1px;background:#c7d6c6}.chapter{position:absolute;left:112px;top:64px;font-size:18px;letter-spacing:4px}.action-icons{display:flex;gap:32px;margin-top:50px}.action-icons div{display:flex;flex-direction:column;align-items:center;gap:14px;font-size:19px;color:#657d6b}.action-icons img{width:54px;height:54px}.detail-window{position:absolute;border-radius:30px;overflow:hidden;border:1px solid #d7dfd0;box-shadow:0 28px 65px -30px #1c352a40;background:#fffef7}.detail-window img{position:absolute;width:100%;height:auto;left:0}.pill{font-size:19px;letter-spacing:1px;display:inline-block;padding:11px 20px;border:1px solid #c6d7c0;border-radius:30px;margin-top:37px}.night .pill{border-color:#4e6b58}.play{display:flex;align-items:center;gap:13px;font-size:22px;margin-top:40px}.play i{display:grid;place-items:center;border-radius:50%;width:46px;height:46px;border:1px solid #8ea48c;font-style:normal;font-size:15px}.number{font-size:148px;font-weight:600;letter-spacing:-7px;color:#a9c69a}.end{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}.end .end-icon{width:150px;height:150px;border-radius:32px;margin-bottom:27px;box-shadow:0 12px 40px #173a3212}.end h2{font-size:78px;letter-spacing:2px}.end .url{font-size:22px;color:#6d806e;margin-top:28px}.end .end-pets{display:flex;gap:50px;align-items:center;margin:48px 0 25px}.end-pets img{width:82px;height:82px;object-fit:contain;image-rendering:pixelated}.end .version{font-size:17px;letter-spacing:3px;color:#748773}.version-label{position:absolute;right:112px;top:76px;font-size:18px;letter-spacing:2px;color:#748773}#hero .copy{top:275px}#hero .phone:nth-of-type(2){z-index:2}#hero .wash{position:absolute;width:950px;height:950px;left:1000px;top:40px;border-radius:50%;background:#d9e7d0}#hero .caption{font-size:19px;color:#71866e;margin-top:22px}#records .copy{top:165px}#records h2{font-size:75px}#residents .copy{left:960px;top:245px}#residents h2{font-size:90px}#residents .pet{opacity:.9}#reminders .copy{top:270px}#opening .center-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column}#opening h1{font-size:106px}#opening .brand{left:auto;top:auto;position:static;font-size:24px;margin-bottom:36px}#opening .small-copy{font-size:24px;letter-spacing:5px;color:#6e826c;margin-top:33px}#opening .pet{width:110px;height:110px}.film-meta{position:absolute;right:42px;bottom:24px;font-size:14px;color:#7a8f7d;z-index:100;letter-spacing:1px}.night .film-meta{color:#c0d2c1}.light-line{width:68px;height:4px;background:#a8bd98;margin-bottom:26px}
+</style>
+<div id="stage">
+ <section id="opening" class="scene">
+  <div class="center-title"><div class="brand"><img data-icon>小小水族日记</div><h1>把日常，<br>养成喜欢。</h1><p class="small-copy">一点照顾 · 一点陪伴</p></div>
+  <img class="pet" data-pet="guppy-gold" style="left:330px;top:320px"><img class="pet" data-pet="turtle" style="left:1490px;top:610px"><img class="pet" data-pet="shrimp" style="left:440px;top:780px">
+ </section>
+ <section id="hero" class="scene mint">
+  <div class="wash"></div><div class="brand"><img data-icon>小小水族日记</div><div class="version-label">v1.6.5</div>
+  <div class="copy"><p class="eyebrow">给家里的每一个小世界</p><h1>照顾好。<br>也记录好。</h1><p class="desc">喂食、换水、观察，随手记下。<br>把水里的日常，放在心上。</p><div class="play"><i>▶</i>看 32 秒产品短片</div></div>
+  <div class="phone small" style="left:1028px;top:244px;transform:rotate(-9deg)"><div class="screen"><img data-shot="phone-residents"></div></div>
+  <div class="phone" style="left:1280px;top:104px;transform:rotate(7deg)"><div class="screen"><img data-shot="phone-home"></div></div>
+  <img class="pet medium" data-pet="guppy-gold" style="left:942px;top:159px"><img class="pet medium" data-pet="shrimp" style="left:1708px;top:817px"><p class="bottom-note">真实 App 界面 · 独立演示资料</p>
+ </section>
+ <section id="care" class="scene mint">
+  <div class="chapter">01 / 随手记录</div><div class="copy"><div class="light-line"></div><h2>轻轻一点。<br>照顾有了记录。</h2><p class="desc">喂食、吸便、加水，记下此刻。<br>换水多少，也能一起留下。</p><div class="action-icons"><div><img data-action-icon="feed"><span>喂食</span></div><div><img data-action-icon="clean"><span>吸便</span></div><div><img data-action-icon="topup"><span>加水</span></div><div><img data-action-icon="water"><span>换水</span></div></div></div>
+  <div class="phone" style="left:1200px;top:87px"><div class="screen"><img data-shot="phone-home"><video muted playsinline data-clip="care"></video></div></div><p class="bottom-note">实际操作画面 · 演示数据</p>
+ </section>
+ <section id="residents" class="scene night">
+  <div class="chapter">02 / 认识居民</div><div class="phone" style="left:292px;top:86px"><div class="screen"><img data-shot="phone-residents"><video muted playsinline data-clip="residents"></video></div></div>
+  <div class="copy"><p class="eyebrow">每一个名字，都有自己的样子</p><h2>每一位，<br>都值得被记住。</h2><p class="desc">选择像素形象，给它取个名字。<br>也能用自己的照片，留住它的模样。</p></div><img class="pet big" data-pet="guppy-gold" style="left:985px;top:760px"><img class="pet big" data-pet="tetra-purple" style="left:1210px;top:760px"><img class="pet big" data-pet="turtle" style="left:1435px;top:760px"><p class="bottom-note">名字与照片均可编辑 · 演示数据</p>
+ </section>
+ <section id="records" class="scene">
+  <div class="chapter">03 / 回看日常</div><div class="copy"><p class="eyebrow">记录连成时间，照顾有迹可循</p><h2>每一次照顾，<br>都留在日常里。</h2><p class="desc" style="margin-top:22px">按缸回看时间轴，在月历里看见维护的节奏。</p></div>
+  <div class="detail-window" style="left:136px;top:542px;width:1010px;height:365px"><img data-shot="timeline-detail" style="top:0"></div>
+  <div class="phone small" style="left:1320px;top:208px"><div class="screen"><img data-shot="phone-tank"><video muted playsinline data-clip="calendar"></video></div></div><p class="bottom-note">时间轴与维护月历 · 演示数据</p>
+ </section>
+ <section id="reminders" class="scene blue">
+  <div class="chapter">04 / 按自己的节奏</div><div class="copy"><p class="eyebrow">不是每天，都需要同样的安排</p><h2>需要停一停，<br>也能从容安排。</h2><p class="desc">创建提醒，也能暂停几天。<br>写下原因，到了恢复日再继续。</p><span class="pill">App 内提醒 · 支持导出日历文件</span></div>
+  <div class="phone" style="left:1220px;top:86px"><div class="screen"><img data-shot="phone-reminder"><video muted playsinline data-clip="reminders"></video></div></div><p class="bottom-note">提醒管理实际画面 · 演示数据</p>
+ </section>
+ <section id="ending" class="scene end">
+  <img class="end-icon" data-icon><p class="eyebrow">小小水族日记</p><h2>照顾好，也记录好。</h2><div class="end-pets"><img data-pet="guppy-gold"><img data-pet="turtle"><img data-pet="shrimp"></div><p class="url">jiangyt1412.github.io/little-aqua-diary</p><p class="version" style="margin-top:34px">v1.6.5 · 手机优先 · 本地保存</p>
+ </section>
+ <div class="film-meta">v1.6.5 · 演示数据</div>
+</div>
+<script type="module">
+// # 同一套可复现版式输出封面、分镜、静帧与逐帧视频；不伪造 App UI。
+const qs=new URLSearchParams(location.search),base=qs.get('assets')||'../../dist/',media=base+'media/';
+for(const img of document.querySelectorAll('[data-shot]'))img.src=media+img.dataset.shot+'-v1.6.5.jpg';
+for(const img of document.querySelectorAll('[data-icon]'))img.src=base+'icon-192.png';
+for(const img of document.querySelectorAll('[data-pet]'))img.src=base+'assets/pets/'+img.dataset.pet+'.svg';
+const {icon}=await import(base+'js/art.js');
+for(const img of document.querySelectorAll('[data-action-icon]'))img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(icon(({feed:'food',clean:'clean',topup:'drop',water:'water'})[img.dataset.actionIcon],54).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" style="color:#688775" '))));
+const scenes=[['opening',0,4],['care',4,10],['residents',10,16],['records',16,22],['reminders',22,28],['ending',28,32]],els=new Map([...document.querySelectorAll('.scene')].map(e=>[e.id,e]));
+const ease=x=>1-Math.pow(1-Math.max(0,Math.min(1,x)),3);
+window.staticFrame=async id=>{for(const [key,el]of els)el.style.opacity=key===id?'1':'0';document.querySelector('.film-meta').style.display='none';await document.fonts.ready;await Promise.all([...document.images].map(i=>i.decode()));};
+window.ready=Promise.all([...document.images].map(i=>i.decode())).then(()=>document.fonts.ready);
+let footage={};
+window.setFootage=async config=>{footage=config;await Promise.all([...document.querySelectorAll('video')].map(async v=>{v.src=config[v.dataset.clip].url;await new Promise((resolve,reject)=>{v.onloadeddata=resolve;v.onerror=reject;v.load()});}));};
+window.frame=async t=>{document.querySelector('.film-meta').style.display='block';let active='opening';for(const [key,el]of els)el.style.opacity='0';
+ for(const [id,start,end]of scenes){const el=els.get(id),local=t-start;let opacity=Math.min(1,Math.max(0,local/.55),Math.max(0,(end+.55-t)/.55));if(id==='opening'&&t<.5)opacity=1;if(id==='ending'&&t>31.5)opacity=1;el.style.opacity=opacity;if(opacity<=0)continue;active=id;
+  const copy=el.querySelector('.copy')||el.querySelector('.center-title')||el;const offset=(1-ease(local/1.25))*45;copy.style.transform=`translateY(${offset}px)`;
+  for(const phone of el.querySelectorAll('.phone'))phone.style.transform=`translateY(${(1-ease(local/1.5))*90-Math.max(0,local-1.5)*1.8}px) rotate(${id==='residents'?-3:id==='reminders'?3:1}deg)`;
+  for(const [i,pet]of [...el.querySelectorAll('.pet')].entries())pet.style.transform=`translate(${Math.sin(t*.7+i)*14}px,${Math.sin(t+i)*11}px)`;
+  const v=el.querySelector('video');if(v&&footage[v.dataset.clip]){const clip=footage[v.dataset.clip],target=clip.start+Math.min(Math.max(0,local),clip.length);v.style.opacity='1';if(Math.abs(v.currentTime-target)>.012){await new Promise(resolve=>{v.onseeked=resolve;v.currentTime=Math.min(target,v.duration-.03);});await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}}
+ }
+ document.querySelector('.film-meta').style.color=active==='residents'?'#b9ccbc':'#7a8f7d';
+};
+await window.ready;await window.staticFrame(qs.get('scene')||'hero');
+</script></html>
