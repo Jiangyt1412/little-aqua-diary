@@ -10,6 +10,7 @@ import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY 
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
 import { dismissDialog, finishDialogMotion, reducedMotion, installFeedback } from './motion.js';
+import { installSheetLayout } from './sheet-layout.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
@@ -25,6 +26,7 @@ const store = new DiaryStore(storage), photos = new PhotoStore();
 const emptyFilters = () => ({ search: '', container: '', type: '', from: '', to: '' });
 const view = { page: 'home', tankId: '', month: localDate().slice(0, 7), selectedDay: '', residentContainer: '', historyLimit: 100, filtersOpen: false, historyDay:'', filters: emptyFilters() };
 const app = document.getElementById('app'), overlay = document.getElementById('overlay-root');
+const sheetLayout = installSheetLayout(overlay,{onResize:()=>fitTimelineViewports(app)});
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
 const quickTapTimes = new Map();
 let afterCreatingContainer = null, reminderContainerId = '';
@@ -118,12 +120,13 @@ function openSheet(title, content, glyph = 'pen', compact = false) {
   if (existing) {
     existing.classList.toggle('compact-sheet', compact);
     existing.querySelector('.sheet-title').innerHTML = `${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2>`;
-    const body = existing.querySelector('.sheet-content'); body.innerHTML = content; existing.scrollTop = 0;
+    const body = existing.querySelector('.sheet-content'); body.innerHTML = content; body.scrollTop = 0; sheetLayout.prepare(existing);
     if (!reducedMotion()) body.animate([{opacity:0,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:160,easing:'cubic-bezier(.2,.8,.2,1)'});
     existing.querySelector('[data-action="close"]').focus({preventScroll:true}); return true;
   }
   overlay.innerHTML = `<dialog id="sheet" class="sheet ${compact ? 'compact-sheet' : ''}" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header class="sheet-header"><div class="sheet-title">${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2></div><button class="icon-button" aria-label="关闭弹窗" data-action="close">${icon('close', 16)}</button></header><div class="sheet-content">${content}</div></dialog>`;
-  const dialog = document.getElementById('sheet'); document.body.classList.add('modal-open'); dialog.showModal();
+  const dialog = document.getElementById('sheet'); document.body.classList.add('modal-open'); sheetLayout.prepare(dialog); dialog.showModal();
+  dialog.querySelector('[data-action="close"]').focus({preventScroll:true});
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeSheet(); });
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeSheet(); } });
   return true;
@@ -498,6 +501,10 @@ document.addEventListener('change', async event => {
       form.querySelector('.pause-date').hidden=!custom; date.disabled=!custom; date.required=custom;
       const mode=form.elements.pauseLength.value, until=pauseResumeDate(mode,date.value);
       form.querySelector('.pause-schedule').textContent=until?`${until} ${form.dataset.time} 恢复`:'暂停至手动恢复。';
+      form.querySelector('[data-pause-summary]').textContent=mode==='manual'?'手动恢复':mode==='date'?'指定日期':`暂停 ${mode} 天`;
+      form.querySelector('[data-pause-resume]').textContent=form.querySelector('.pause-schedule').textContent;
+      form.querySelector('.pause-help').textContent=mode==='manual'?'手动恢复后继续原计划。':'到期继续原计划，不补提醒。';
+      sheetLayout.update();
     }
     else if (field.name === 'templateId') {
       const form = field.closest('form'), preset = PET_TEMPLATES.find(p => p.id === field.value); if (!preset) return;
@@ -543,16 +550,6 @@ function refreshClock() {
 }
 setInterval(() => { const minute = Math.floor(Date.now() / 60000); if (!document.hidden && minute !== renderedMinute) { renderedMinute = minute; refreshClock(); } }, 15000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { store.reload(); refreshClock(); } });
-// # 键盘弹出后使用可见视口限制弹窗高度，保留表单滚动与操作按钮。
-function fitVisibleViewport() {
-  const viewport=window.visualViewport, height=viewport?.height || innerHeight;
-  document.documentElement.style.setProperty('--visual-viewport-height',`${height}px`);
-  document.documentElement.style.setProperty('--keyboard-inset',`${Math.max(0,innerHeight-height-(viewport?.offsetTop||0))}px`);
-  fitTimelineViewports(app);
-}
-window.visualViewport?.addEventListener('resize',fitVisibleViewport);
-window.visualViewport?.addEventListener('scroll',fitVisibleViewport);
-window.addEventListener('resize',fitVisibleViewport); fitVisibleViewport();
 // # 只清理从未编辑的旧默认配置；任何个人修改都会保留。
 if (!store.locked && !store.issue && await isUntouchedStarter(store.data)) {
   try { store.replace(seedData()); } catch (error) { store.issue = error.message; }
