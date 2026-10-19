@@ -4,37 +4,37 @@
 
 <p align="center">照顾好，也记录好。<br>给家里的鱼缸、龟缸和虾桶，一本随手可记的日记。</p>
 
-<p align="center"><strong>Version 1.6.3</strong> · 2026-10-19<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">观看实际操作视频</a> · <a href="CHANGELOG.md">更新记录</a></p>
+<p align="center"><strong>Version 1.6.4</strong> · 2026-10-20<br><a href="https://jiangyt1412.github.io/little-aqua-diary/">打开日记</a> · <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">观看实际操作视频</a> · <a href="CHANGELOG.md">更新记录</a></p>
 
-[![v1.6.3 实际界面，演示数据；点击观看操作视频](dist/media/cover-v1.6.3.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![v1.6.4 实际界面，演示数据；点击观看操作视频](dist/media/cover-v1.6.4.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-## 本次更新 · v1.6.3
+## 本次更新 · v1.6.4
 
-- **更新项目展示**：重新录制当前版本，集中展示最新截图、视频和鱼缸进出动图。
-- **功能承接 v1.6.2**：孔雀鱼与其他物种的居民卡片等大，进入鱼缸连续滑入，支持左侧右滑返回。
+- **主分区用按钮切换**：首页、记录、居民取消左右滑动切页，触摸、鼠标拖动和触控板横滑均不再自动切页。
+- **保留缸内与图表操作**：鱼缸详情仍可从左侧右滑返回，时间轴横向滚动、居民长按排序和按钮切页过渡保留。
 
-本次更新发布资料与版本信息，日记功能和数据格式沿用 v1.6.2。
+本次调整页面切换方式，记录、居民、照片和备份格式保持兼容。
 
 ## 最新界面
 
 <table>
   <tr>
-    <td align="center"><img src="dist/media/phone-home-v1.6.3.jpg" width="280" alt="v1.6.3 首页，演示缸与一键维护"><br>首页 · 一键记录</td>
-    <td align="center"><img src="dist/media/phone-residents-v1.6.3.jpg" width="280" alt="v1.6.3 居民，孔雀鱼与其他物种的卡片等大"><br>居民 · 卡片统一大小</td>
+    <td align="center"><img src="dist/media/phone-home-v1.6.4.jpg" width="280" alt="v1.6.4 首页，演示缸与一键维护"><br>首页 · 一键记录</td>
+    <td align="center"><img src="dist/media/phone-residents-v1.6.4.jpg" width="280" alt="v1.6.4 居民，孔雀鱼与其他物种的卡片等大"><br>居民 · 卡片统一大小</td>
   </tr>
   <tr>
-    <td align="center"><img src="dist/media/phone-history-v1.6.3.jpg" width="280" alt="v1.6.3 记录，各缸共用自动调整范围的时间轴"><br>记录 · 按缸对照</td>
-    <td align="center"><img src="dist/media/phone-tank-v1.6.3.jpg" width="280" alt="v1.6.3 缸内，四类维护行为及次数共用月历"><br>缸内 · 维护月历</td>
+    <td align="center"><img src="dist/media/phone-history-v1.6.4.jpg" width="280" alt="v1.6.4 记录，各缸共用自动调整范围的时间轴"><br>记录 · 按缸对照</td>
+    <td align="center"><img src="dist/media/phone-tank-v1.6.4.jpg" width="280" alt="v1.6.4 缸内，四类维护行为及次数共用月历"><br>缸内 · 维护月历</td>
   </tr>
 </table>
 
 ## 实际操作视频
 
-[▶ 播放 v1.6.3 完整演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [查看 MP4 文件](dist/media/demo-v1.6.3.mp4)
+[▶ 播放 v1.6.4 完整演示](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo) · [查看 MP4 文件](dist/media/demo-v1.6.4.mp4)
 
-真实点击、输入与拖动，展示居民卡片、鱼缸过渡、右滑返回、记录搜索、照片、月历、头像裁剪、提醒暂停与恢复、版本检查。
+真实点击、输入与拖动，展示主分区滑动后停留原页、底部导航按钮切页、鱼缸过渡与右滑返回，再操作记录、照片、月历、头像与提醒。
 
-<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo"><img src="dist/media/tank-transition-v1.6.3.gif" width="300" alt="v1.6.3 鱼缸进入与返回的实际操作动图，演示数据"></a><br>鱼缸进出 · 实际录屏预览</p>
+<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo"><img src="dist/media/tank-transition-v1.6.4.gif" width="300" alt="v1.6.4 鱼缸进入与返回的实际操作动图，演示数据"></a><br>鱼缸进出 · 实际录屏预览</p>
 
 截图与录像均使用独立演示数据。演示记录和名字为示例，照片附件是原生像素插画，不含用户的个人照片。App 首次打开仍为空白日记。
 
@@ -50,9 +50,9 @@
 <details>
 <summary>更多界面与像素形象</summary>
 
-<table><tr><td align="center"><img src="dist/media/phone-avatar-v1.6.3.jpg" width="280" alt="v1.6.3 头像裁剪，使用像素演示插画"><br>头像 · 再次调整取景</td><td align="center"><img src="dist/media/phone-reminder-v1.6.3.jpg" width="280" alt="v1.6.3 提醒管理，演示暂停与原因"><br>提醒 · 暂停与恢复</td></tr></table>
+<table><tr><td align="center"><img src="dist/media/phone-avatar-v1.6.4.jpg" width="280" alt="v1.6.4 头像裁剪，使用像素演示插画"><br>头像 · 再次调整取景</td><td align="center"><img src="dist/media/phone-reminder-v1.6.4.jpg" width="280" alt="v1.6.4 提醒管理，演示暂停与原因"><br>提醒 · 暂停与恢复</td></tr></table>
 
-![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.6.3.png)
+![当前居民形象与空缸模板海报](dist/media/pixel-library-v1.6.4.png)
 
 黄金玻璃猫采用审核通过的 r2 原生 SVG，金黄圆腹、红鳃、黑眼与黄扇尾。海报直接使用 App 素材，不代表实际同缸或数量。
 
@@ -99,4 +99,4 @@ Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「�
 
 右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
 
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.3 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.4 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。

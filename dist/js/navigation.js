@@ -1,12 +1,11 @@
-// # 三页提前渲染，拖动时移动完整画面；交接前保持预览覆盖，避免空白帧。
+// # 主分区由导航按钮切换，只有详情支持左缘右滑；交接前保留预览覆盖。
 export const PRIMARY_ROUTES=['home','history','residents'];
-export function swipeTarget(route,dx){const index=PRIMARY_ROUTES.indexOf(route),next=index+(dx<0?1:-1);return index>=0?PRIMARY_ROUTES[next]||null:null;}
-export function shouldFinishSwipe(dx,width,velocity=0){return Math.abs(dx)>Math.min(width*.24,110)||(Math.abs(dx)>34&&Math.abs(velocity)>.45);}
+export function shouldFinishSwipe(dx,width,velocity=0){return dx>Math.min(width*.24,110)||(dx>34&&velocity>.45);}
 export function detailSwipeTarget(route,dx,x,origin='home'){return route.startsWith('tank/')&&x<=28&&x>=0&&dx>0&&PRIMARY_ROUTES.includes(origin)?origin:null;}
 export function installNavigation({route,content,navigate,hydrate,position}){
-  const prepared=new Map();let gesture=null,stage=null,suppress=0,finishing=false,wheelUntil=0,detailOrigin={route:'home',scroll:0};
+  const prepared=new Map();let gesture=null,stage=null,suppress=0,finishing=false,detailOrigin={route:'home',scroll:0};
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const eligible=target=>!!target.closest('#main')&&(PRIMARY_ROUTES.includes(route())||route().startsWith('tank/'))&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('resident-sorting')&&!target.closest('input,textarea,select,button,a,summary,[data-sort-list],[data-swipe-ignore],.container-tabs,.photo-gallery,.avatar-crop-dialog');
+  const eligible=target=>!!target.closest('#main')&&route().startsWith('tank/')&&!document.querySelector('dialog[open]')&&!document.body.classList.contains('resident-sorting')&&!target.closest('input,textarea,select,button,a,summary,[data-sort-list],[data-swipe-ignore],.container-tabs,.photo-gallery,.avatar-crop-dialog');
   function makePane(html){const main=document.createElement('div');main.className='main-wrap swipe-main';main.innerHTML=html;main.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));hydrate(main);return main;}
   function prepare(){for(const key of PRIMARY_ROUTES)prepared.set(key,makePane(content(key)));}
   function cleanup(){stage?.animations?.forEach(animation=>animation.cancel());stage?.layer.remove();stage=null;gesture=null;finishing=false;document.body.classList.remove('page-swiping');}
@@ -39,13 +38,13 @@ export function installNavigation({route,content,navigate,hydrate,position}){
     if(stage===current)cleanup();
   }
   function start(target,x,y,event){
-    if(gesture||stage||finishing||!eligible(target)||(route().startsWith('tank/')&&x>28))return;gesture={x,y,lastX:x,lastTime:performance.now(),velocity:0,dx:0,locked:false,back:route().startsWith('tank/'),touch:event.type==='touchstart'};
+    if(gesture||stage||finishing||!eligible(target)||x<0||x>28)return;gesture={x,y,lastX:x,lastTime:performance.now(),velocity:0,dx:0,locked:false,touch:event.type==='touchstart'};
     // # iOS 部分版本需在边缘起点阻止默认动作；浏览器自身手势仍以实际系统行为为准。
-    if(event.type==='touchstart'&&(x<=20||x>=innerWidth-20)&&event.cancelable)event.preventDefault();
+    if(event.type==='touchstart'&&x<=20&&event.cancelable)event.preventDefault();
   }
   function drag(x,y,event){
     if(!gesture||finishing)return;const dx=x-gesture.x,dy=y-gesture.y;
-    if(!gesture.locked){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){gesture=null;return;}if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.25)return;const target=gesture.back?detailSwipeTarget(route(),dx,gesture.x,detailOrigin.route):swipeTarget(route(),dx);if(!target){if(!gesture.back&&event.cancelable)event.preventDefault();gesture=null;return;}gesture.locked=true;setup(target,dx<0?1:-1,gesture.back?'back':'primary',gesture.back?detailOrigin.scroll:0);}
+    if(!gesture.locked){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){gesture=null;return;}if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.25)return;const target=detailSwipeTarget(route(),dx,gesture.x,detailOrigin.route);if(!target){gesture=null;return;}gesture.locked=true;setup(target,-1,'back',detailOrigin.scroll);}
     if(event.cancelable)event.preventDefault();const now=performance.now();gesture.velocity=(x-gesture.lastX)/Math.max(1,now-gesture.lastTime);gesture.lastX=x;gesture.lastTime=now;gesture.dx=dx;
     const distance=stage.direction===1?Math.max(-stage.width,Math.min(0,dx)):Math.min(stage.width,Math.max(0,dx));move(distance);
   }
@@ -55,7 +54,6 @@ export function installNavigation({route,content,navigate,hydrate,position}){
   document.addEventListener('touchend',event=>{if(gesture?.touch)end(event);},{passive:false});document.addEventListener('touchcancel',()=>{if(gesture?.touch)cancel();});
   document.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'&&event.button===0)start(event.target,event.clientX,event.clientY,event);});
   document.addEventListener('pointermove',event=>{if(event.pointerType!=='touch'&&!gesture?.touch)drag(event.clientX,event.clientY,event);},{passive:false});document.addEventListener('pointerup',event=>{if(event.pointerType!=='touch'&&!gesture?.touch)end(event);});document.addEventListener('pointercancel',event=>{if(event.pointerType!=='touch'&&gesture&&!gesture.touch)cancel();});
-  document.addEventListener('wheel',event=>{if(!PRIMARY_ROUTES.includes(route())||!eligible(event.target)||Math.abs(event.deltaX)<Math.abs(event.deltaY)*1.3||Math.abs(event.deltaX)<6)return;if(event.cancelable)event.preventDefault();if(performance.now()<wheelUntil||stage)return;const target=swipeTarget(route(),-event.deltaX);if(target){wheelUntil=performance.now()+650;setup(target,event.deltaX>0?1:-1);settle(true);}},{passive:false});
   document.addEventListener('click',event=>{
     if(stage||performance.now()<suppress){event.preventDefault();event.stopImmediatePropagation();return;}
     const anchor=event.target.closest('a[href^="#"]');if(!anchor||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;let target=anchor.getAttribute('href').slice(1);if(anchor.hasAttribute('data-detail-back')&&route().startsWith('tank/'))target=detailOrigin.route;if(!/^(home|history|residents|settings|tank\/.*)$/.test(target))return;
