@@ -1,8 +1,8 @@
 // # 缓存当前版本应用壳；浏览器数据和照片仍留在 localStorage / IndexedDB。
 const CACHE_PREFIX = 'little-aqua-diary-app-';
-const VERSION = '1.6.5';
-const CACHE = `${CACHE_PREFIX}v1.6.5`;
-const SHELL = ['./', './index.html', './styles.css', './studio.css', './manifest.webmanifest', './favicon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon.svg?v=1.6.5', './icon-192.png?v=1.6.5', './icon-512.png?v=1.6.5', './apple-touch-icon.png?v=1.6.5',
+const VERSION = '1.6.6';
+const CACHE = `${CACHE_PREFIX}v1.6.6`;
+const SHELL = ['./', './index.html', './styles.css', './studio.css', './manifest.webmanifest', './favicon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon.svg?v=1.6.6', './icon-192.png?v=1.6.6', './icon-512.png?v=1.6.6', './apple-touch-icon.png?v=1.6.6',
   ...['app', 'data', 'logic', 'inventory', 'media', 'avatar-crop', 'species', 'sortable', 'timeline', 'navigation', 'motion', 'forms', 'ui', 'art', 'pets', 'habitats', 'tasks', 'starter-reset', 'pwa', 'updates', 'version'].map(name => `./js/${name}.js`)];
 const urls = new Set(SHELL.map(path => new URL(path, self.registration.scope).href));
 self.addEventListener('install', event => {

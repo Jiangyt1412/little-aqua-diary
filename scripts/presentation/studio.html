@@ -10,7 +10,7 @@
   <img class="pet" data-pet="guppy-gold" style="left:330px;top:320px"><img class="pet" data-pet="turtle" style="left:1490px;top:610px"><img class="pet" data-pet="shrimp" style="left:440px;top:780px">
  </section>
  <section id="hero" class="scene mint">
-  <div class="wash"></div><div class="brand"><img data-icon>小小水族日记</div><div class="version-label">v1.6.5</div>
+  <div class="wash"></div><div class="brand"><img data-icon>小小水族日记</div><div class="version-label">v1.6.6</div>
   <div class="copy"><p class="eyebrow">给家里的每一个小世界</p><h1>照顾好。<br>也记录好。</h1><p class="desc">喂食、换水、观察，随手记下。<br>把水里的日常，放在心上。</p><div class="play"><i>▶</i>看 32 秒产品短片</div></div>
   <div class="phone small" style="left:1028px;top:244px;transform:rotate(-9deg)"><div class="screen"><img data-shot="phone-residents"></div></div>
   <div class="phone" style="left:1280px;top:104px;transform:rotate(7deg)"><div class="screen"><img data-shot="phone-home"></div></div>
@@ -34,14 +34,14 @@
   <div class="phone" style="left:1220px;top:86px"><div class="screen"><img data-shot="phone-reminder"><video muted playsinline data-clip="reminders"></video></div></div><p class="bottom-note">提醒管理实际画面 · 演示数据</p>
  </section>
  <section id="ending" class="scene end">
-  <img class="end-icon" data-icon><p class="eyebrow">小小水族日记</p><h2>照顾好，也记录好。</h2><div class="end-pets"><img data-pet="guppy-gold"><img data-pet="turtle"><img data-pet="shrimp"></div><p class="url">jiangyt1412.github.io/little-aqua-diary</p><p class="version" style="margin-top:34px">v1.6.5 · 手机优先 · 本地保存</p>
+  <img class="end-icon" data-icon><p class="eyebrow">小小水族日记</p><h2>照顾好，也记录好。</h2><div class="end-pets"><img data-pet="guppy-gold"><img data-pet="turtle"><img data-pet="shrimp"></div><p class="url">jiangyt1412.github.io/little-aqua-diary</p><p class="version" style="margin-top:34px">v1.6.6 · 手机优先 · 本地保存</p>
  </section>
- <div class="film-meta">v1.6.5 · 演示数据</div>
+ <div class="film-meta">v1.6.6 · 演示数据</div>
 </div>
 <script type="module">
 // # 同一套可复现版式输出封面、分镜、静帧与逐帧视频；不伪造 App UI。
 const qs=new URLSearchParams(location.search),base=qs.get('assets')||'../../dist/',media=base+'media/';
-for(const img of document.querySelectorAll('[data-shot]'))img.src=media+img.dataset.shot+'-v1.6.5.jpg';
+for(const img of document.querySelectorAll('[data-shot]'))img.src=media+img.dataset.shot+'-v1.6.6.jpg';
 for(const img of document.querySelectorAll('[data-icon]'))img.src=base+'icon-192.png';
 for(const img of document.querySelectorAll('[data-pet]'))img.src=base+'assets/pets/'+img.dataset.pet+'.svg';
 const {icon}=await import(base+'js/art.js');
