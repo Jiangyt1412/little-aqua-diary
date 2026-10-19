@@ -1,3 +1,4 @@
+import { dismissDialog } from './motion.js'; // # 统一窗口动画与中止路径。
 // # 头像取景使用本地 Canvas；拖动、双指缩放和方向键共享同一裁剪边界。
 import { decodePhoto } from './media.js';
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -37,11 +38,11 @@ export async function editAvatar(asset, initial = {}, { signal } = {}) {
     const paint = () => {
       crop = paintCrop(canvas, image, crop); range.value = String(crop.zoom); output.value = crop.zoom.toFixed(1) + '×';
     };
-    const finish = result => {
+    const finish = (result, immediate = false) => {
       if (disposed) return; disposed = true; listeners.abort();
-      signal?.removeEventListener('abort', abort); if (dialog.open) dialog.close(); dialog.remove(); resolve(result);
+      signal?.removeEventListener('abort', abort); dismissDialog(dialog, () => { dialog.remove(); resolve(result); }, immediate);
     };
-    const abort = () => finish(null);
+    const abort = () => finish(null, true);
     const localPoint = event => { const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; };
     const midpoint = list => ({ x: (list[0].x + list[1].x) / 2, y: (list[0].y + list[1].y) / 2 });
     const distance = list => Math.hypot(list[1].x - list[0].x, list[1].y - list[0].y);

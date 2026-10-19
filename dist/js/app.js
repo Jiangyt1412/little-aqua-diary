@@ -2,13 +2,14 @@
 import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
-import { homePage, historyPage, residentsPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
+import { homePage, historyPage, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
+import { dismissDialog, finishDialogMotion, reducedMotion } from './motion.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
 import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
@@ -79,18 +80,31 @@ function discardPhotoDraft() {
   if (photoDraft) { photoDraft.abort.abort(); photoDraft.urls.forEach(url => URL.revokeObjectURL(url)); }
   photoDraft = null;
 }
-function closeSheet() {
+function closeSheet(immediate = false) {
   if (modalBusy) return;
-  const dialog = overlay.querySelector('dialog'); if (dialog?.open) dialog.close();
-  overlay.innerHTML = ''; afterCreatingContainer = null; pendingConfirm = null; recordDraft = null; discardPhotoDraft();
-  document.body.classList.remove('modal-open');
-  if (focusBeforeDialog?.isConnected) focusBeforeDialog.focus({ preventScroll: true });
+  const dialog = overlay.querySelector('dialog');
+  afterCreatingContainer = null; pendingConfirm = null; recordDraft = null; discardPhotoDraft();
+  dismissDialog(dialog, () => {
+    if (dialog && !overlay.contains(dialog)) return;
+    overlay.replaceChildren(); document.body.classList.remove('modal-open');
+    if (focusBeforeDialog?.isConnected) focusBeforeDialog.focus({ preventScroll: true });
+  }, immediate === true);
 }
 function openSheet(title, content, glyph = 'pen', compact = false) {
   if (modalBusy) return false;
   sorting?.cancel(); navigation?.cancel();
+  finishDialogMotion(overlay.querySelector('dialog'));
   if (!overlay.querySelector('dialog[open]')) focusBeforeDialog = document.activeElement;
   discardPhotoDraft(); recordDraft = null; pendingConfirm = null;
+  // # 同一窗口内切换内容时保留原生遮罩，避免先关再开造成闪白。
+  const existing = overlay.querySelector('dialog[open]');
+  if (existing) {
+    existing.classList.toggle('compact-sheet', compact);
+    existing.querySelector('.sheet-title').innerHTML = `${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2>`;
+    const body = existing.querySelector('.sheet-content'); body.innerHTML = content; existing.scrollTop = 0;
+    if (!reducedMotion()) body.animate([{opacity:0,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:160,easing:'cubic-bezier(.2,.8,.2,1)'});
+    existing.querySelector('[data-action="close"]').focus({preventScroll:true}); return true;
+  }
   overlay.innerHTML = `<dialog id="sheet" class="sheet ${compact ? 'compact-sheet' : ''}" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header class="sheet-header"><div class="sheet-title">${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2></div><button class="icon-button" aria-label="关闭弹窗" data-action="close">${icon('close', 16)}</button></header><div class="sheet-content">${content}</div></dialog>`;
   const dialog = document.getElementById('sheet'); document.body.classList.add('modal-open'); dialog.showModal();
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeSheet(); });
@@ -469,13 +483,13 @@ document.addEventListener('change', async event => {
     else if (field.name === 'countType') { const form = field.closest('form'), existing = store.data.animals.find(a => a.id === form.dataset.id); document.getElementById('animal-count-fields').innerHTML = countFields(field.value, existing); }
   } catch (error) { toast(error.message, true); }
 });
-function navigateRoute(route){history.replaceState(null,'',`#${route}`);readRoute();}
-function readRoute() {
+function navigateRoute(route,{scroll=0}={}){history.replaceState(null,'',`#${route}`);readRoute({scroll});}
+function readRoute({scroll=0}={}) {
   const hash = location.hash.slice(1); let tankId = '';
   if (hash.startsWith('tank/')) { try { tankId = decodeURIComponent(hash.slice(5)); } catch {} }
   if (tankId && view.tankId !== tankId) { view.month = localDate().slice(0, 7); view.selectedDay = ''; }
   view.page = tankId ? 'tank' : NAV.some(([key]) => key === hash) ? hash : 'home'; view.tankId = tankId;
-  closeSheet(); render(); window.scrollTo({ top: 0, behavior: 'instant' });
+  closeSheet(true); render(); window.scrollTo({ top: scroll, behavior: 'instant' });
   if (hash === 'settings') actions.manager();
 }
 window.addEventListener('hashchange', readRoute);
@@ -512,7 +526,7 @@ sorting = installSorting({
   },
   onError(error) { render(); toast(error.message,true); }
 });
-navigation=installNavigation({route:()=>view.page,content:route=>({home:homePage,history:historyPage,residents:residentsPage}[route])(store.data,{...view,page:route}),navigate:navigateRoute,hydrate:root=>hydratePhotos(root,photos),position:root=>positionTimelines(root,timelinePositions)});
+navigation=installNavigation({route:()=>view.page==='tank'?`tank/${encodeURIComponent(view.tankId)}`:view.page,content:route=>route.startsWith('tank/')?tankPage(store.data,{...view,page:'tank',tankId:decodeURIComponent(route.slice(5))}):({home:homePage,history:historyPage,residents:residentsPage}[route])(store.data,{...view,page:route}),navigate:navigateRoute,hydrate:root=>hydratePhotos(root,photos),position:root=>positionTimelines(root,timelinePositions)});
 readRoute();
 window.addEventListener('aqua-update-ready' , () => checkUpdates(true));
 // # 页面重开导致注册取消时，不在失效页面继续发起启动检查。

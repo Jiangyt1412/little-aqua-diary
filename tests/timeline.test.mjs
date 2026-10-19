@@ -1,7 +1,7 @@
 // # 时间轴分组、时刻位置、碰撞布局和手势边界。
 import test from 'node:test';import assert from 'node:assert/strict';
-import{historyTimeline,layoutEvents,shiftDay,HOUR_WIDTH,TIMELINE_PAD}from'../dist/js/timeline.js';
-import{swipeTarget,shouldFinishSwipe}from'../dist/js/navigation.js';
+import{historyTimeline,layoutEvents,shiftDay,HOUR_WIDTH,TIMELINE_PAD,adaptiveScale}from'../dist/js/timeline.js';
+import{swipeTarget,shouldFinishSwipe,detailSwipeTarget}from'../dist/js/navigation.js';
 import{PET_GROUPS}from'../dist/js/pets.js';
 process.env.TZ='Asia/Shanghai'; // # 固定时区检查跨日，实际 App 用本地设备时间。
 const record=(id,containerId,time)=>({id,containerId,type:'feed',timestamp:time,createdAt:time,details:{}});
@@ -12,3 +12,8 @@ test('时间轴本地午夜边界和半小时时刻位置一致',()=>{const d={c
 test('重叠事件错层且不丢记录，空间足够时复用轨道',()=>{const events=layoutEvents([record('a','a','2026-10-15T08:00:00+08:00'),record('b','a','2026-10-15T08:01:00+08:00'),record('c','a','2026-10-15T12:00:00+08:00')]);assert.deepEqual(events.map(e=>e.lane),[0,1,0]);const t=historyTimeline({containers:[{id:'a'}]},events.map(e=>e.record),{day:'2026-10-15',limit:2});assert.equal(t.total,3);assert.equal(t.shown,2);assert.equal(t.remaining,1);});
 test('跨年闰日切换与无记录日期保持指定日',()=>{assert.equal(shiftDay('2024-02-28',1),'2024-02-29');assert.equal(shiftDay('2026-12-31',1),'2027-01-01');assert.equal(historyTimeline({containers:[{id:'a'}]},[],{day:'2026-01-01'}).day,'2026-01-01');});
 test('粉色与银黑形象相邻，原有十二个模板标识不变',()=>{const fish=PET_GROUPS.find(g=>g.id==='fish');assert.deepEqual(fish.templates.slice(0,3).map(p=>p.id),['parrot','angel','goby']);assert.equal(new Set(PET_GROUPS.flatMap(g=>g.templates).map(p=>p.id)).size,12);});
+// # 数据驱动的标尺和详情返回边界，均不改原记录。
+test('集中记录只展开其时间范围，所有缸共用相同坐标',()=>{const rows=[record('a','a','2026-10-19T08:10:00+08:00'),record('b','b','2026-10-19T09:40:00+08:00')],t=historyTimeline({containers:[{id:'a'},{id:'b'}]},rows,{day:'2026-10-19'});assert.ok(t.scale.start<=490&&t.scale.end>=580);assert.ok(t.scale.end-t.scale.start<=150);assert.equal(t.start,0);assert.ok(t.rows[0].events[0].x<t.rows[1].events[0].x);assert.equal(t.scale.ticks[0].label,'08:00');});
+test('同一时刻、午夜与全天跨度均覆盖全部点，刻度单调',()=>{for(const times of [['12:30:00'],['00:00:00','00:02:30'],['23:58:00','23:59:59'],['00:00:00','23:59:59']]){const records=times.map((time,i)=>record(String(i),'a',`2026-10-19T${time}+08:00`)),s=adaptiveScale(records);assert.ok(s.start>=0&&s.end<=1440&&s.end-s.start>=10);for(const event of layoutEvents(records,s,240))assert.ok(event.ratio>=0&&event.ratio<=1);assert.ok(s.ticks.every((t,i,a)=>!i||t.minute>a[i-1].minute));}});
+test('加载更多保持全日共同范围，筛选缸时排除其他缸的极端时间',()=>{const records=[record('a','a','2026-10-19T08:00:00+08:00'),record('b','a','2026-10-19T09:00:00+08:00'),record('c','b','2026-10-19T23:00:00+08:00')],d={containers:[{id:'a'},{id:'b'}]},a=historyTimeline(d,records,{day:'2026-10-19',limit:1}),b=historyTimeline(d,records,{day:'2026-10-19',limit:100});assert.deepEqual(a.scale,b.scale);const filtered=historyTimeline(d,records,{day:'2026-10-19',container:'a'});assert.equal(filtered.total,2);assert.ok(filtered.scale.end<=600);});
+test('详情仅从左缘右滑回来源；中部、左滑和无效来源不触发',()=>{assert.equal(detailSwipeTarget('tank/one',80,8,'residents'),'residents');assert.equal(detailSwipeTarget('tank/one',80,100,'home'),null);assert.equal(detailSwipeTarget('tank/one',-80,8,'home'),null);assert.equal(detailSwipeTarget('home',80,8,'home'),null);assert.equal(detailSwipeTarget('tank/one',80,8,'settings'),null);});
