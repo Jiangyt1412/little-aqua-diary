@@ -1,6 +1,6 @@
 {
   "name": "little-aqua-diary",
-  "version": "1.6.13",
+  "version": "1.6.14",
   "private": true,
   "type": "module",
   "description": "A mobile-first, browser-local aquarium diary",

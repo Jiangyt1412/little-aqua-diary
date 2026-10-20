@@ -1,16 +1,16 @@
 <h1 align="center">小小水族日记</h1>
 <p align="center">照顾好，也记录好。</p>
 
-[![v1.6.13 宣传页首屏，真实 App 界面，演示数据](dist/media/cover-v1.6.13.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#overview)
+[![v1.6.14 宣传页首屏，真实 App 界面，演示数据](dist/media/cover-v1.6.14.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#overview)
 
 <p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">图文介绍</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">产品短片 ▶</a></p>
-<p align="center"><strong>Version 1.6.13</strong> · 2026-10-21</p>
+<p align="center"><strong>Version 1.6.14</strong> · 2026-10-21</p>
 
 ## 从日常照顾，到一月回看。
 
 小小水族日记，把每个缸的照顾、居民和记录放在一起。从空白日记开始，缸、名字和居民都由你创建。
 
-![首页、维护月历与居民三屏功能介绍，真实界面，演示数据](dist/media/product-showcase-v1.6.13.png)
+![首页、维护月历与居民三屏功能介绍，真实界面，演示数据](dist/media/product-showcase-v1.6.14.png)
 
 | 01 · 随手记录 | 02 · 一月回看 | 03 · 认识居民 |
 | --- | --- | --- |
@@ -19,37 +19,38 @@
 ## 细节，也能按你的方式来。
 
 <table>
-<tr><td align="center" width="50%"><h3>头像，留住它的模样。</h3><img src="dist/media/phone-avatar-v1.6.13.jpg" width="300" alt="真实头像裁剪界面，演示插画"><p>上传照片后拖动、缩放、旋转取景。<br>以后也可以重新裁剪。</p></td><td align="center" width="50%"><h3>提醒，按自己的节奏。</h3><img src="dist/media/phone-pause-v1.6.13.jpg" width="300" alt="真实提醒暂停界面，演示数据"><p>暂停几天、指定恢复日期，或手动恢复。<br>也能记下这次暂停的原因。</p></td></tr>
+<tr><td align="center" width="50%"><h3>头像，留住它的模样。</h3><img src="dist/media/phone-avatar-v1.6.14.jpg" width="300" alt="真实头像裁剪界面，演示插画"><p>上传照片后拖动、缩放、旋转取景。<br>以后也可以重新裁剪。</p></td><td align="center" width="50%"><h3>提醒，按自己的节奏。</h3><img src="dist/media/phone-pause-v1.6.14.jpg" width="300" alt="真实提醒暂停界面，演示数据"><p>暂停几天、指定恢复日期，或手动恢复。<br>也能记下这次暂停的原因。</p></td></tr>
 </table>
 
 记录还可以按缸分行，共用时间刻度回看。日记与照片保存在当前浏览器，完整备份可包含照片与头像取景副本。
 
-## 看它动起来。
+## 完整产品短片 · 24 秒
 
-[![维护月历真实操作片段，演示数据](dist/media/product-preview-v1.6.13.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![播放完整24秒产品短片，静态封面，真实界面与演示数据](dist/media/film-poster-v1.6.14.png)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.13.mp4)
+点击封面进入播放器，播放完整短片（含声音），可暂停或拖动进度。
+
+[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.14.mp4)
 
 <details>
 <summary><strong>更多实际界面与像素形象</strong></summary>
 
 <table>
-<tr><td align="center"><img src="dist/media/phone-home-v1.6.13.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.13.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
-<tr><td align="center"><img src="dist/media/phone-history-v1.6.13.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.13.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-home-v1.6.14.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.14.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.6.14.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.14.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
 </table>
 
-![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.13.png)
+![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.14.png)
 
 </details>
 
 画面使用演示资料，名字和记录为示例，照片附件为项目像素插画。首次打开 App 为空白日记。图文布局参考用户提供的三屏示例，展示内容全部来自本项目。
 
-## 本次更新 · v1.6.13
+## 本次更新 · v1.6.14
 
-- 新增三屏静态功能总览，以及可以直接阅读的功能说明。
-- 默认展示头像裁剪、暂停提醒两项细节，视频作为补充演示保留。
-- 宣传页同步增加原生图文卡片，图片可打开大图；首屏排版、App 操作及数据格式不变。
-- 短片、字幕和动图沿用 v1.6.11 源片，片内版本保持 v1.6.11。
+- 将 GitHub 的循环动图改为静态播放封面，明确区分预览图与完整24秒视频。
+- 点击封面进入完整播放器，可暂停、拖动进度和打开字幕。
+- 保留三屏图文介绍；完整视频仍沿用已确认的 v1.6.11 源片，App 操作与数据格式不变。
 
 [所有版本的更新](CHANGELOG.md) · [版本号怎样区分](docs/VERSIONS.md) · [验收与设备范围](验收记录.md)
 

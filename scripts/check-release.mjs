@@ -41,6 +41,11 @@ if (!showcaseBytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 2
 const showcasePosition = readme.indexOf(showcase), beforeShowcase = readme.slice(0, showcasePosition);
 if (showcasePosition < 0 || beforeShowcase.lastIndexOf('<details>') > beforeShowcase.lastIndexOf('</details>')) throw new Error('主要功能介绍图未默认展示');
 if (!intro.includes('id="overview"') || [...intro.matchAll(/class="overview-card"/g)].length !== 3 || intro.indexOf('id="overview"') > intro.indexOf('id="demo"')) throw new Error('宣传页未在视频前保留三项原生图文介绍');
+// # README的影片入口必须明确指向完整视频，禁止用循环GIF冒充播放器。
+const filmPoster = `dist/media/film-poster-v${APP_VERSION}.png`;
+const filmPosterBytes = await fs.readFile(path.join(root, filmPoster));
+if (!filmPosterBytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) || filmPosterBytes.readUInt32BE(16) !== 1920 || filmPosterBytes.readUInt32BE(20) !== 1080) throw new Error('完整短片静态封面无效');
+if (!readme.includes(filmPoster) || /product-preview[^)\n]*\.gif/.test(readme) || !readme.includes('完整产品短片 · 24 秒')) throw new Error('README完整视频入口不清楚或仍使用循环动图');
 const introVersions = [...intro.matchAll(/data-version>v([^<]+)/g)].map(match => match[1]);
 if (!introVersions.length || introVersions.some(version => version !== APP_VERSION)) throw new Error('项目简介版本不一致');
 if (!(await read('dist/sw.js')).includes('`${CACHE_PREFIX}v' + APP_VERSION + '`')) throw new Error('离线缓存版本未同步');
