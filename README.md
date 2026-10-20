@@ -1,39 +1,39 @@
 <h1 align="center">小小水族日记</h1>
 <p align="center">照顾好，也记录好。</p>
 
-[![v1.6.11 产品短片封面，真实 App 界面，演示数据](dist/media/cover-v1.6.11.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![v1.6.12 宣传页首屏，真实 App 界面，演示数据](dist/media/cover-v1.6.12.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
 <p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目介绍</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">产品短片 ▶</a></p>
-<p align="center"><strong>Version 1.6.11</strong> · 2026-10-21</p>
+<p align="center"><strong>Version 1.6.12</strong> · 2026-10-21</p>
 
 ## 给每一缸，留一点日常。
 
-[![产品短片中的维护月历片段，演示数据](dist/media/product-preview-v1.6.11.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![产品短片中的维护月历片段，演示数据](dist/media/product-preview-v1.6.12.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
 喂食、吸便、加水记下此刻，换水记录水量。居民可以取名、选形象、裁剪照片；记录按缸排列，在时间轴与月历里回看。
 
-[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.11.mp4)
+[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.12.mp4)
 
 <details>
 <summary><strong>实际界面</strong></summary>
 
 <table>
-<tr><td align="center"><img src="dist/media/phone-home-v1.6.11.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.11.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
-<tr><td align="center"><img src="dist/media/phone-history-v1.6.11.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.11.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
-<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.11.jpg" width="270" alt="头像裁剪，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-pause-v1.6.11.jpg" width="270" alt="暂停提醒表单，演示数据"><br>暂停与恢复</td></tr>
+<tr><td align="center"><img src="dist/media/phone-home-v1.6.12.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.12.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.6.12.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.12.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.12.jpg" width="270" alt="头像裁剪，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-pause-v1.6.12.jpg" width="270" alt="暂停提醒表单，演示数据"><br>暂停与恢复</td></tr>
 </table>
 
-![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.11.png)
+![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.12.png)
 
 </details>
 
 画面使用隔离演示资料。名字和记录为示例，照片附件为原生像素插画。短片的真实界面由高分辨率页面帧录制，镜头运动用于展示；没有实体手机外壳或系统键盘。首次打开日记为空白状态。
 
-## 本次更新 · v1.6.11
+## 本次更新 · v1.6.12
 
-- 按用户指定，将产品短片7.3–12.3秒的居民展示改为真实维护月历，展示四类维护图标与次数。
-- 同步“这一月，一眼回看。”镜头文案、中文字幕和配套功能图，保留24秒时长、1080p/60fps、浅色水域背景和原创配乐。
-- 当前演示月历使用明确标注的示例记录；App 的操作、日记、照片与备份格式沿用 v1.6.10。
+- 收紧宣传页文字与双屏之间的间距，文字栏按实际内容占位，双屏靠近并适度放大。
+- 保留手机纵向布局，更新宣传封面；没有增加填充文案。
+- 月历版短片、字幕和动图沿用已确认的 v1.6.11 原文件，片内版本仍为 v1.6.11；本次没有重新编码影片。App 操作及数据格式不变。
 
 [所有版本的更新](CHANGELOG.md) · [版本号怎样区分](docs/VERSIONS.md) · [验收与设备范围](验收记录.md)
 
