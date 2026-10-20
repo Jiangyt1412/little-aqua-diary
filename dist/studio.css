@@ -131,3 +131,11 @@ body.modal-open .bottom-nav,body.keyboard-open .bottom-nav{visibility:hidden;poi
 .pause-edit-summary strong{font-size:13px;color:var(--accent);font-weight:600}
 @media(max-width:700px){.sheet{bottom:calc(var(--keyboard-inset,0px) + 8px)}.sheet-content:not(.has-sheet-form){padding-bottom:8px}.sheet .sheet-footer{gap:12px}.sheet.is-keyboard .sheet-title h2{font-size:15px}}
 @media(max-height:350px){.sheet.is-keyboard .sheet-header{padding-block:1px}.sheet.is-keyboard .sheet-footer{padding-block:7px}.sheet.is-writing-reason .pause-edit-summary{margin-bottom:9px}.sheet.is-writing-reason textarea{min-height:60px;height:60px}}
+
+/* # 背景固定在打开位置；只让最上层窗口的正文消费滚动，标题仍留在屏幕顶端。 */
+html.dialog-lock{overflow:hidden;overscroll-behavior:none}
+body.modal-open{position:fixed;top:calc(-1 * var(--modal-scroll-y,0px));left:calc(-1 * var(--modal-scroll-x,0px));width:100%;padding-right:var(--modal-scrollbar-gap,0px);overflow:hidden;overscroll-behavior:none}
+body.modal-open .site-header{position:relative;top:0;transform:translateY(var(--modal-scroll-y,0px))}
+body.modal-open #app{transform:translateY(var(--modal-viewport-shift,0px))}
+.sheet-content,.sheet-form-body,.avatar-crop-dialog{overscroll-behavior:none}
+.sheet-transition-snapshot{position:absolute!important;flex:none!important;min-height:0;max-height:none;overflow:hidden!important;pointer-events:none!important;z-index:3;background:var(--surface)}

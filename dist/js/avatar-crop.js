@@ -1,4 +1,5 @@
 import { dismissDialog } from './motion.js'; // # 统一窗口动画与中止路径。
+import { presentDialog } from './dialog-layer.js'; // # 裁剪期间不把拖动传给父窗口。
 // # 头像取景使用本地 Canvas；拖动、双指缩放和方向键共享同一裁剪边界。
 import { decodePhoto } from './media.js';
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -100,6 +101,6 @@ export async function editAvatar(asset, initial = {}, { signal } = {}) {
       }
     }, events);
     signal?.addEventListener('abort', abort, { once: true });
-    document.body.append(dialog); dialog.showModal(); paint(); canvas.focus({ preventScroll: true });
+    document.body.append(dialog); presentDialog(dialog); paint(); canvas.focus({ preventScroll: true });
   });
 }

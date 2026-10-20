@@ -9,7 +9,8 @@ import { editAvatar } from './avatar-crop.js';
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
-import { dismissDialog, finishDialogMotion, reducedMotion, installFeedback } from './motion.js';
+import { dismissDialog, finishDialogMotion, transitionDialog, reducedMotion, installFeedback } from './motion.js';
+import { presentDialog } from './dialog-layer.js'; // # 主弹窗与头像子窗共用滚动锁。
 import { installSheetLayout } from './sheet-layout.js';
 import { installSorting } from './sortable.js';
 import { PET_TEMPLATES, petIcon } from './pets.js';
@@ -30,6 +31,7 @@ const sheetLayout = installSheetLayout(overlay,{onResize:()=>fitTimelineViewport
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
 const quickTapTimes = new Map();
 let afterCreatingContainer = null, reminderContainerId = '';
+const reminderScrolls = new Map();
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
 let announcedVersion = '', sorting, navigation;
 const timelinePositions=new Map();
@@ -105,11 +107,11 @@ function closeSheet(immediate = false) {
   afterCreatingContainer = null; pendingConfirm = null; recordDraft = null; discardPhotoDraft();
   dismissDialog(dialog, () => {
     if (dialog && !overlay.contains(dialog)) return;
-    overlay.replaceChildren(); document.body.classList.remove('modal-open');
+    overlay.replaceChildren();
     if (focusBeforeDialog?.isConnected) focusBeforeDialog.focus({ preventScroll: true });
   }, immediate === true);
 }
-function openSheet(title, content, glyph = 'pen', compact = false) {
+function openSheet(title, content, glyph = 'pen', compact = false, transition = {}) {
   if (modalBusy) return false;
   sorting?.cancel(); navigation?.cancel();
   finishDialogMotion(overlay.querySelector('dialog'));
@@ -118,14 +120,15 @@ function openSheet(title, content, glyph = 'pen', compact = false) {
   // # 同一窗口内切换内容时保留原生遮罩，避免先关再开造成闪白。
   const existing = overlay.querySelector('dialog[open]');
   if (existing) {
-    existing.classList.toggle('compact-sheet', compact);
-    existing.querySelector('.sheet-title').innerHTML = `${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2>`;
-    const body = existing.querySelector('.sheet-content'); body.innerHTML = content; body.scrollTop = 0; sheetLayout.prepare(existing);
-    if (!reducedMotion()) body.animate([{opacity:0,transform:'translateY(7px)'},{opacity:1,transform:'translateY(0)'}],{duration:160,easing:'cubic-bezier(.2,.8,.2,1)'});
+    transitionDialog(existing, () => {
+      existing.classList.toggle('compact-sheet', compact);
+      existing.querySelector('.sheet-title').innerHTML = `${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2>`;
+      const body = existing.querySelector('.sheet-content'); body.innerHTML = content; sheetLayout.prepare(existing); body.scrollTop = transition.scrollTop || 0;
+    }, transition.direction);
     existing.querySelector('[data-action="close"]').focus({preventScroll:true}); return true;
   }
   overlay.innerHTML = `<dialog id="sheet" class="sheet ${compact ? 'compact-sheet' : ''}" aria-labelledby="sheet-title"><div class="sheet-handle"></div><header class="sheet-header"><div class="sheet-title">${icon(glyph, 21)}<h2 id="sheet-title">${e(title)}</h2></div><button class="icon-button" aria-label="关闭弹窗" data-action="close">${icon('close', 16)}</button></header><div class="sheet-content">${content}</div></dialog>`;
-  const dialog = document.getElementById('sheet'); document.body.classList.add('modal-open'); sheetLayout.prepare(dialog); dialog.showModal();
+  const dialog = document.getElementById('sheet'); sheetLayout.prepare(dialog); presentDialog(dialog);
   dialog.querySelector('[data-action="close"]').focus({preventScroll:true});
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeSheet(); });
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeSheet(); } });
@@ -340,9 +343,15 @@ function openNewAnimal(containerId = '', templateId = '') {
   if (!ensureContainers(id => openSheet('添加居民', animalForm(store.data, null, id, templateId), 'fish'))) return;
   openSheet('添加居民', animalForm(store.data, null, containerId || store.data.containers[0].id, templateId), 'fish');
 }
-function openReminders(containerId = '') { reminderContainerId = containerId; openSheet('照顾日常', tasksPanel(store.data, false, containerId), 'bell'); }
+function openReminders(containerId = '') {
+  const returning = !!overlay.querySelector('.sheet-back[data-action="reminders"]') && reminderContainerId === containerId;
+  reminderContainerId = containerId;
+  openSheet('照顾日常', tasksPanel(store.data, false, containerId), 'bell', false, {direction:returning?'back':'forward',scrollTop:returning?reminderScrolls.get(containerId)||0:0});
+}
 // # 提醒的子表单有返回入口，保存、暂停和完成后回到同一份任务列表。
 function reminderEditor(title, content, glyph = 'bell') {
+  const manager = overlay.querySelector('.sheet-content .task-manager');
+  if (manager) reminderScrolls.set(reminderContainerId, manager.closest('.sheet-content').scrollTop);
   if (!openSheet(title, content, glyph)) return;
   reminderBackButton();
 }
