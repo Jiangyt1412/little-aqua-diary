@@ -1,100 +1,64 @@
 <h1 align="center">小小水族日记</h1>
-<p align="center">给家里的每一个小世界，留一点日常。</p>
+<p align="center">照顾好，也记录好。</p>
 
-[![照顾好，也记录好。v1.6.7 产品短片封面，真实 App 界面与演示数据；点击播放](dist/media/cover-v1.6.7.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![v1.6.8 产品短片封面，真实 App 界面，演示数据](dist/media/cover-v1.6.8.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开水族日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">观看 32 秒产品短片 ▶</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">浏览完整介绍</a></p>
-<p align="center"><strong>Version 1.6.7</strong> · 2026-10-20<br>手机优先 · 本地保存 · 从空白开始</p>
+<p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目介绍</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">产品短片 ▶</a></p>
+<p align="center"><strong>Version 1.6.8</strong> · 2026-10-20</p>
 
-## 把日常，养成喜欢。
+## 给每一缸，留一点日常。
 
-[![喂食一点记录，进入鱼缸回看；广告短片中的真实操作镜头，演示数据](dist/media/product-preview-v1.6.7.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![产品短片中的真实操作片段，演示数据](dist/media/product-preview-v1.6.8.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
-**轻轻一点，照顾有了记录。** 喂食、吸便、加水记下此刻，换水多少也能一起留下。
+喂食、吸便、加水记下此刻，换水记录水量。居民可以取名、选形象、裁剪照片；记录按缸排列，在时间轴与月历里回看。
 
-[32 秒产品短片 · MP4](dist/media/demo-v1.6.7.mp4) · [完整实际操作 · MP4](dist/media/walkthrough-v1.6.7.mp4)
-
-短片包含分镜、真实界面特写与原创配乐；完整录屏保留点击、输入、拖动和表单操作。GitHub 图片可点击前往播放器。
-
-## 每一位，都值得被记住。
-
-![居民姓名、头像与像素形象，真实 App 界面，演示数据](dist/media/story-residents-v1.6.7.jpg)
-
-选择像素形象，取一个名字。也能用自己的照片留住它的模样，拖动、缩放或旋转裁剪头像。
-
-## 每一次照顾，都留在日常里。
-
-![按缸排列的共享时间轴与四类维护月历，真实 App 界面，演示数据](dist/media/story-records-v1.6.7.jpg)
-
-按缸对照时间轴，在月历里看见维护的节奏。搜索关键词，回看记录与观察照片。
+[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.8.mp4)
 
 <details>
-<summary><strong>提醒暂停、完整手机截图与像素形象</strong></summary>
-
-![提醒可暂停、填写原因并按恢复日期继续，真实界面，演示数据](dist/media/story-reminders-v1.6.7.jpg)
-
-输入原因时保留恢复时间摘要，正文与按钮栏分开。下图短视口为 Chrome 模拟，没有绘制系统键盘。
-
-提醒在 App 内显示，另支持导出日历文件。暂停后，已经导入系统日历的内容需要另行修改。
+<summary><strong>实际界面</strong></summary>
 
 <table>
-<tr><td align="center"><img src="dist/media/phone-home-v1.6.7.jpg" width="270" alt="v1.6.7 首页完整截图，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.7.jpg" width="270" alt="v1.6.7 居民完整截图，演示数据"><br>居民</td></tr>
-<tr><td align="center"><img src="dist/media/phone-history-v1.6.7.jpg" width="270" alt="v1.6.7 记录完整截图，演示数据"><br>共享时间轴</td><td align="center"><img src="dist/media/phone-tank-v1.6.7.jpg" width="270" alt="v1.6.7 月历完整截图，演示数据"><br>维护月历</td></tr>
-<tr><td align="center"><img src="dist/media/phone-pause-v1.6.7.jpg" width="270" alt="v1.6.7 暂停提醒表单，演示数据"><br>选择暂停时长</td><td align="center"><img src="dist/media/phone-pause-edit-v1.6.7.jpg" width="270" alt="缩短可见视口的原因输入模拟，非 iPhone 真机键盘"><br>输入原因 · 短视口模拟</td></tr>
-<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.7.jpg" width="270" alt="v1.6.7 头像裁剪截图，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-reminder-v1.6.7.jpg" width="270" alt="v1.6.7 提醒管理截图，演示数据"><br>暂停与恢复</td></tr>
+<tr><td align="center"><img src="dist/media/phone-home-v1.6.8.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.8.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.6.8.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.8.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.8.jpg" width="270" alt="头像裁剪，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-pause-v1.6.8.jpg" width="270" alt="暂停提醒表单，演示数据"><br>暂停与恢复</td></tr>
 </table>
 
-![原生居民形象与四款空缸模板](dist/media/pixel-library-v1.6.7.png)
+![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.8.png)
 
 </details>
 
-截图、录屏和短片均使用独立演示资料。名字与记录为示例，头像和照片附件为项目像素插画，不包含用户的个人资料。手机外框是展示排版，屏幕内容来自实际 App。首次打开仍是空白日记。
+画面使用隔离演示资料。名字和记录为示例，照片附件为原生像素插画。短片的真实界面由高分辨率页面帧录制，镜头运动用于展示；没有实体手机外壳或系统键盘。首次打开日记为空白状态。
 
-## 本次更新 · v1.6.7
+## 本次更新 · v1.6.8
 
-- **输入更清爽**：暂停原因缩为紧凑输入区，触屏焦点使用柔和细边框；键盘导航仍保留清晰焦点。
-- **键盘避让**：填写原因时收起时长选项，保留暂停与恢复摘要；标题、内容和按钮栏分开，输入框不再被按钮遮挡。
-- **统一弹窗**：记录、提醒、居民与鱼缸表单共用独立滚动区域，修复键盘上方的重复安全区留白。
-- 兼容的小修复，版本由 v1.6.6 递增为 v1.6.7；记录、照片与备份格式不变。
+- 介绍页统一浅色底，移除厚手机框、圆形背景、悬浮虾、深绿色大底与重复文案。
+- 首屏只保留打开入口；影片区只提供产品短片。
+- 产品短片改为 24 秒，减少文案，以连续真实操作、清晰的界面特写和镜头运动展示功能。
+- App 保留 v1.6.7 的键盘避让修复，记录、照片和备份格式不变。
 
+[所有版本的更新](CHANGELOG.md) · [版本号怎样区分](docs/VERSIONS.md) · [验收与设备范围](验收记录.md)
 
-## 从原网址迁移
+## 使用与备份
 
-原网址：[小小水族日记 · 原入口](https://little-aqua-diary-jyt.jiangy-t-10.chatgpt.site/)。
+Safari 打开 [在线日记](https://jiangyt1412.github.io/little-aqua-diary/)，选择「共享 → 添加到主屏幕」。首次联网并完成缓存后可离线记录。[Apple 官方说明](https://support.apple.com/zh-cn/guide/iphone/iphea86e5236/ios)
 
-1. 在原网址打开右上角「管理与备份」，导出「备份（含照片）」。
-2. 在新网址打开同一菜单，选择「恢复备份」。
-3. 核对居民、记录和照片；恢复会替换新网址当前的数据，若已开始记录，先备份这份数据。
+日记与照片保存在当前浏览器，没有云同步。换设备、换网址或清除网站数据前，导出「备份（含照片）」；在新入口恢复备份会替换当前资料。旧网址的数据不会自动迁移。
 
-记录与名单保存在当前浏览器的 localStorage，照片保存在 IndexedDB。不同网址、浏览器和设备各自保存，不能自动同步。源码仓库不包含你实际使用时保存的记录与照片；清除网站数据会导致本地资料丢失，请保留浏览器之外的 JSON 备份。
+提醒在 App 内显示，也可导出日历文件；App 中暂停或修改任务不会同步修改已经导入的日历。移动端验证采用模拟视口，实体 iPhone 的键盘、下载、照片与日历导入仍需实际设备复核。
 
-## 运行与维护
+更新入口为「管理与备份 → 检查更新」，查看更新内容后安装，保持联网直到自动重开。无需卸载或清除网站资料。
 
-网页是静态 HTML、CSS 和 JavaScript，无前端依赖或构建步骤。手机使用在线地址；本地运行需要 Python 3。
+## 本地运行
 
-```sh
-python3 -m http.server 4173 --bind 127.0.0.1 --directory dist # 在项目目录运行，打开 http://127.0.0.1:4173/
-```
-
-Node.js 22+ 可运行检查：
+无前端安装依赖，需要 Python 3。
 
 ```sh
-npm test # 验证数据、数量联动、旧备份与版本检查逻辑
-npm run check:release # 核对版本、变更记录和当前版本的截图及视频
+python3 -m http.server 4173 --bind 127.0.0.1 --directory dist # 打开 http://127.0.0.1:4173/
 ```
 
-[完整使用说明](docs/USAGE.md) · [GitHub 部署与更新流程](docs/DEPLOYMENT.md) · [后续维护约定](AGENTS.md)
+```sh
+npm test # 验证数据、联动、提醒、视口与版本规则
+npm run check:release # 检查版本、说明、素材和部署资源
+```
 
-手机验证使用模拟视口，不等同于各品牌手机或 Safari 实机测试。本版提供主屏幕安装和缓存后的离线记录；没有云端同步或后台系统推送。
-
-## 在 iPhone 使用
-
-Safari 打开在线日记，点「共享 → 添加到主屏幕」，开启「作为网页 App 打开」再添加。先成功联网打开一次，缓存完成后可离线使用。设置里的安装提示也能查看步骤。[Apple 官方说明](https://support.apple.com/zh-cn/guide/iphone/iphea86e5236/ios)
-
-提醒在 App 内显示。可导出日历文件，再作为附件从 Apple「邮件」打开导入日历；是否直接从下载文件导入，以设备实际界面为准。App 的暂停不会自动修改导入后的日历。[Apple 日历说明](https://support.apple.com/zh-cn/guide/iphone/ipha0d932e96/ios)
-
-## 更新 App
-
-右上角「管理与备份 → 检查更新」。发现新版后可查看更新内容，再点「更新到 v…」，保持联网直到自动重开。当前数据和照片保留。
-
-从 v1.4.0 首次升级时，联网打开、等待缓存完成，再刷新或重开一次；菜单显示 v1.6.7 后即可使用新入口。无需卸载或清除网站数据。已安装主屏幕图标的系统刷新行为尚未在实体 iPhone 验证。
+[完整使用说明](docs/USAGE.md) · [GitHub 部署](docs/DEPLOYMENT.md) · [维护约定](AGENTS.md)
