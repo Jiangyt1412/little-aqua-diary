@@ -1,40 +1,40 @@
 <h1 align="center">小小水族日记</h1>
 <p align="center">照顾好，也记录好。</p>
 
-[![v1.6.8 产品短片封面，真实 App 界面，演示数据](dist/media/cover-v1.6.8.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![v1.6.9 产品短片封面，真实 App 界面，演示数据](dist/media/cover-v1.6.9.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
 <p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">项目介绍</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">产品短片 ▶</a></p>
-<p align="center"><strong>Version 1.6.8</strong> · 2026-10-20</p>
+<p align="center"><strong>Version 1.6.9</strong> · 2026-10-20</p>
 
 ## 给每一缸，留一点日常。
 
-[![产品短片中的真实操作片段，演示数据](dist/media/product-preview-v1.6.8.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![产品短片中的真实操作片段，演示数据](dist/media/product-preview-v1.6.9.gif)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
 喂食、吸便、加水记下此刻，换水记录水量。居民可以取名、选形象、裁剪照片；记录按缸排列，在时间轴与月历里回看。
 
-[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.8.mp4)
+[观看 24 秒产品短片 · MP4](dist/media/demo-v1.6.9.mp4)
 
 <details>
 <summary><strong>实际界面</strong></summary>
 
 <table>
-<tr><td align="center"><img src="dist/media/phone-home-v1.6.8.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.8.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
-<tr><td align="center"><img src="dist/media/phone-history-v1.6.8.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.8.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
-<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.8.jpg" width="270" alt="头像裁剪，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-pause-v1.6.8.jpg" width="270" alt="暂停提醒表单，演示数据"><br>暂停与恢复</td></tr>
+<tr><td align="center"><img src="dist/media/phone-home-v1.6.9.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.6.9.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.6.9.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.6.9.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-avatar-v1.6.9.jpg" width="270" alt="头像裁剪，演示插画"><br>头像取景</td><td align="center"><img src="dist/media/phone-pause-v1.6.9.jpg" width="270" alt="暂停提醒表单，演示数据"><br>暂停与恢复</td></tr>
 </table>
 
-![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.8.png)
+![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.6.9.png)
 
 </details>
 
 画面使用隔离演示资料。名字和记录为示例，照片附件为原生像素插画。短片的真实界面由高分辨率页面帧录制，镜头运动用于展示；没有实体手机外壳或系统键盘。首次打开日记为空白状态。
 
-## 本次更新 · v1.6.8
+## 本次更新 · v1.6.9
 
-- 介绍页统一浅色底，移除厚手机框、圆形背景、悬浮虾、深绿色大底与重复文案。
-- 首屏只保留打开入口；影片区只提供产品短片。
-- 产品短片改为 24 秒，减少文案，以连续真实操作、清晰的界面特写和镜头运动展示功能。
-- App 保留 v1.6.7 的键盘避让修复，记录、照片和备份格式不变。
+- 参考用户提供的版式，调整首屏左右分区和错位双屏。
+- 以柔和水色、细水纹、像素水草与岩石丰富留白，不增加介绍文案。
+- 封面、功能图、动图及24秒产品短片同步水域背景，沿用清晰的真实操作内容与连续镜头。
+- 日记功能、记录、照片及备份格式沿用上一版。
 
 [所有版本的更新](CHANGELOG.md) · [版本号怎样区分](docs/VERSIONS.md) · [验收与设备范围](验收记录.md)
 

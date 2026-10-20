@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" fill="none">
+  <!-- # 低对比水域构图沿用项目水草和岩石的像素语言，文字区保持平静。 -->
+  <defs>
+    <linearGradient id="water" x1="970" y1="20" x2="1250" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#dce5d3"/><stop offset=".58" stop-color="#d9e8df"/><stop offset="1" stop-color="#e7ece1"/></linearGradient>
+    <linearGradient id="shore" x1="400" y1="630" x2="400" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#e7eade" stop-opacity="0"/><stop offset="1" stop-color="#d7e2d7" stop-opacity=".7"/></linearGradient>
+    <g id="reed"><path d="M0 0v-71h4V0zm0-17h-9v-7h-6v-11h5v7h10zm4-24h9v-7h6v-13h-6v9H4zM0-49h-8v-10h-4v-12h4v9h8z" fill="currentColor"/><path d="M-4 0H9v4H-4z" fill="currentColor"/></g>
+    <g id="sprout"><path d="M0 0v-24h4V0zm0-8h-7v-7h-5v-7h5v4h7zm4-6h7v-7h6v-9h-6v6H4z" fill="currentColor"/></g>
+    <g id="stone"><path d="M0 18h11V7h12V0h24v7h11v11h10v20H0z" fill="#b5c2ad"/><path d="M12 15h17V8h18v7H35v7H12zM38 29h19v5H38z" fill="#c9d1bb"/></g>
+  </defs>
+  <path fill="#f5f3eb" d="M0 0h1440v900H0z"/>
+  <path d="M827-70c-110 93-165 219-126 357 31 111 151 201 123 337-14 72-74 144-41 214 45 95 274 131 446 76 185-59 270-224 255-421-15-202 10-388-121-496-140-116-391-170-536-67Z" fill="url(#water)" opacity=".83"/>
+  <path d="M-130 794c213-103 357-95 531-44 197 58 288 57 452-14 174-75 358-55 587 44v120H0Z" fill="url(#shore)"/>
+  <g stroke="#a7c4ba" stroke-linecap="round" opacity=".24">
+    <path d="M-17 774c176-51 294-43 440 0 166 49 280 46 429-10 206-78 343-47 592 29"/>
+    <path d="M-50 817c217-51 347-27 477 10 152 43 300 31 450-22 184-64 355-27 579 30"/>
+    <path d="M933 138h95m25 0h45m130 80h97M752 332h66m27 0h26m312 335h93"/>
+  </g>
+  <g opacity=".26">
+    <use href="#reed" transform="translate(60 818) scale(1.45)" color="#81a48a"/>
+    <use href="#reed" transform="translate(89 821) scale(.87)" color="#9caf89"/>
+    <use href="#reed" transform="translate(32 820) scale(.8)" color="#9db8a4"/>
+    <use href="#stone" transform="translate(123 807) scale(.65)"/>
+    <use href="#sprout" transform="translate(204 836) scale(.8)" color="#93af92"/>
+    <use href="#sprout" transform="translate(408 857) scale(.9)" color="#94b29d"/>
+    <use href="#stone" transform="translate(465 840) scale(.48)"/>
+    <use href="#reed" transform="translate(1372 830) scale(1.5)" color="#8fad96"/>
+    <use href="#reed" transform="translate(1400 829) scale(.9)" color="#a5b590"/>
+    <use href="#sprout" transform="translate(1322 845) scale(.8)" color="#8dab98"/>
+  </g>
+  <g fill="#fcfbee" opacity=".8"><path d="M897 102h6v6h-6zM1177 92h4v4h-4zM1344 340h7v7h-7zM782 412h5v5h-5zM1316 582h4v4h-4zM994 746h6v6h-6z"/></g>
+  <g fill="#b3c7b5" opacity=".33"><path d="M113 699h5v5h-5zM183 742h4v4h-4zM346 801h4v4h-4zM547 822h6v6h-6zM1288 390h5v5h-5zM1280 812h5v5h-5z"/></g>
+</svg>

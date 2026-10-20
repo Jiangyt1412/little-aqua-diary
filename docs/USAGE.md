@@ -1,4 +1,4 @@
-# 使用与备份（v1.6.8）
+# 使用与备份（v1.6.9）
 
 [打开水族日记](https://jiangyt1412.github.io/little-aqua-diary/) · [图文与视频简介](https://jiangyt1412.github.io/little-aqua-diary/intro.html)。主界面只有首页、记录、居民三个入口。
 
