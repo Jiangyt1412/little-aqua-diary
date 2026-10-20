@@ -34,6 +34,13 @@ const posterBytes = await fs.readFile(path.join(root, poster));
 if (posterBytes.length < 1000 || !posterBytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) throw new Error('当前版本的像素海报缺失或不是 PNG');
 if (!readme.includes(poster)) throw new Error('README 未包含当前像素海报');
 const intro = await read('dist/intro.html');
+// # 核心图文不能只在视频或折叠区中，发布时一起检查总览图和原生说明。
+const showcase = `dist/media/product-showcase-v${APP_VERSION}.png`;
+const showcaseBytes = await fs.readFile(path.join(root, showcase));
+if (!showcaseBytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) || showcaseBytes.readUInt32BE(16) !== 2400 || showcaseBytes.readUInt32BE(20) !== 1760) throw new Error('当前三屏功能介绍图缺失或尺寸无效');
+const showcasePosition = readme.indexOf(showcase), beforeShowcase = readme.slice(0, showcasePosition);
+if (showcasePosition < 0 || beforeShowcase.lastIndexOf('<details>') > beforeShowcase.lastIndexOf('</details>')) throw new Error('主要功能介绍图未默认展示');
+if (!intro.includes('id="overview"') || [...intro.matchAll(/class="overview-card"/g)].length !== 3 || intro.indexOf('id="overview"') > intro.indexOf('id="demo"')) throw new Error('宣传页未在视频前保留三项原生图文介绍');
 const introVersions = [...intro.matchAll(/data-version>v([^<]+)/g)].map(match => match[1]);
 if (!introVersions.length || introVersions.some(version => version !== APP_VERSION)) throw new Error('项目简介版本不一致');
 if (!(await read('dist/sw.js')).includes('`${CACHE_PREFIX}v' + APP_VERSION + '`')) throw new Error('离线缓存版本未同步');
