@@ -1,6 +1,6 @@
 // # 共用本地日历与按记录自适应的时间标尺；时间位置按实际时分计算，重叠卡片排入额外轨道。
 import { localDate, newestFirst, escapeHTML as e, timeLabel, recordSummary } from './logic.js';
-import { TYPES } from './data.js';
+import { TYPES, orderedContainers } from './data.js';
 import { icon } from './art.js';
 export const HOUR_WIDTH=44, TIMELINE_PAD=38, TIMELINE_WIDTH=24*HOUR_WIDTH+2*TIMELINE_PAD;
 export function shiftDay(day,offset){const date=new Date(`${day}T12:00:00`);date.setDate(date.getDate()+offset);return localDate(date);}
@@ -25,7 +25,7 @@ export function layoutEvents(records,scale={start:0,end:1440},width=TIMELINE_WID
 export function historyTimeline(data,records,{day='',container='',limit=100}={}){
   const date=day || (records.length?localDate([...records].sort(newestFirst)[0].timestamp):localDate());
   const matched=records.filter(r=>localDate(r.timestamp)===date&&(!container||r.containerId===container)),scale=adaptiveScale(matched),visible=[...matched].sort((a,b)=>-newestFirst(a,b)).slice(0,limit);
-  const rows=data.containers.filter(c=>!container||c.id===container).map(c=>{
+  const rows=orderedContainers(data).filter(c=>!container||c.id===container).map(c=>{
     const events=layoutEvents(visible.filter(r=>r.containerId===c.id),scale,240);
     const spacing=events.some(event=>event.record.photoIds?.length)?120:78;
     return{container:c,events,spacing,height:Math.max(124,Math.max(-1,...events.map(event=>event.lane))*spacing+(spacing===120?162:124))};

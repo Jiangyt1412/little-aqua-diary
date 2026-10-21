@@ -10,6 +10,22 @@ export function checkedDiaryName(value) {
   return name;
 }
 export const diaryName = data => data.settings.diaryName || '我的水族日记';
+// # 缸顺序仅写可选设置；不重排原容器数组，不改居民、维护记录或照片引用。
+export function orderedContainers(data) {
+  const byId = new Map(data.containers.map(container => [container.id, container]));
+  const preferred = (data.settings?.containerOrder || []).filter(id => byId.has(id));
+  const selected = new Set(preferred);
+  return [...preferred.map(id => byId.get(id)), ...data.containers.filter(container => !selected.has(container.id))];
+}
+export function moveContainer(data, id, direction) {
+  if (direction !== -1 && direction !== 1) throw new Error('缸的移动方向无效。');
+  const ids = orderedContainers(data).map(container => container.id), from = ids.indexOf(id), to = from + direction;
+  if (from < 0) throw new Error('这个缸已被移除，请刷新后再试。');
+  if (to < 0 || to >= ids.length) return false;
+  [ids[from], ids[to]] = [ids[to], ids[from]];
+  data.settings.containerOrder = ids;
+  return true;
+}
 export const TYPES = {
   feed: { label: '喂食', icon: 'food', color: 'gold' },
   siphon: { label: '吸便', icon: 'clean', color: 'mint' },
@@ -152,6 +168,10 @@ export function validateData(input) {
     if (rule.pauseReason !== undefined && !validText(rule.pauseReason, 1000)) fail('暂停原因过长');
   }
   if (input.settings.lastBackupAt != null && !dateValid(input.settings.lastBackupAt)) fail('备份时间无效');
+  // # 删除后的旧ID可忽略，新缸追加到末尾；旧备份无排序字段仍保持创建顺序。
+  if (input.settings.containerOrder !== undefined && (!Array.isArray(input.settings.containerOrder)
+    || input.settings.containerOrder.length > 100000 || new Set(input.settings.containerOrder).size !== input.settings.containerOrder.length
+    || input.settings.containerOrder.some(id => !validText(id,150) || !id))) fail('缸排序无效');
   // # 展示顺序是可选设置；已删除缸或物种的旧排序忽略展示，不阻止删除和旧备份恢复。
   if (input.settings.residentOrder !== undefined) {
     if (!Array.isArray(input.settings.residentOrder) || input.settings.residentOrder.length > 100000) fail('居民排序无效');

@@ -7,6 +7,6 @@
 <main id="stage"><video muted playsinline preload="auto" aria-label="已确认产品短片真实帧"></video><div class="play-label"><span class="play-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v18l16-9z"/></svg></span><span>完整短片 · 24 秒</span></div></main>
 <script type="module">
 // # 仅在浏览器制作时定位一帧；导出的PNG不自动播放或循环。
-const query=new URLSearchParams(location.search),base=query.get('assets')||'../../dist/',version=query.get('version')||'1.6.14',v=document.querySelector('video');
+const query=new URLSearchParams(location.search),base=query.get('assets')||'../../dist/',version=query.get('version')||'1.7.0',v=document.querySelector('video');
 window.ready=(async()=>{v.src=`${base}media/demo-v${version}.mp4`;await new Promise((resolve,reject)=>{v.addEventListener('loadedmetadata',resolve,{once:true});v.addEventListener('error',reject,{once:true});});await new Promise(resolve=>{v.addEventListener('seeked',()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)),{once:true});v.currentTime=1.4;});await document.fonts.ready;})();
 </script></html>

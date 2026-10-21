@@ -1,5 +1,5 @@
 // # 应用协调层：本地事务、照片草稿、简化导航和旧备份兼容。
-import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel } from './data.js';
+import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel, orderedContainers, moveContainer } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
 import { homePage, historyPage, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
@@ -34,6 +34,7 @@ let afterCreatingContainer = null, reminderContainerId = '';
 const reminderScrolls = new Map();
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
 let announcedVersion = '', sorting, navigation;
+let containerMotions = [];
 const timelinePositions=new Map();
 const busyControls = new WeakMap();
 // # 持久写入期间明确显示进度，并保存每个控件原来的可用状态。
@@ -76,6 +77,7 @@ async function installUpdate() {
   }
 }
 function render() {
+  containerMotions.forEach(animation => animation.cancel()); containerMotions = [];
   sorting?.cancel();
   app.querySelectorAll('[data-timeline-day]').forEach(el=>timelinePositions.set(el.dataset.timelineDay,el.scrollLeft));
   const focused = document.activeElement, focusId = focused?.id, filterField = focused?.dataset.filterField;
@@ -144,6 +146,39 @@ function formError(form, error) {
   else toast(error.message || String(error), true);
 }
 function commitAndFinish(callback, message) { store.commit(callback); render(); closeSheet(); toast(message); }
+// # 上下移动只提交顺序设置，实际重排后恢复焦点；取消旧动画可承受连续点击。
+function moveContainerCard(control) {
+  if (navigation?.busy) return;
+  const id = control.dataset.id, direction = Number(control.dataset.direction), scroll = window.scrollY, animate = store.data.settings.animations && !reducedMotion();
+  const before = new Map([...app.querySelectorAll('[data-container-card]')].map(card => [card.dataset.containerCard,card.getBoundingClientRect()]));
+  let moved = false;
+  store.commit(data => { moved = moveContainer(data,id,direction); });
+  render(); window.scrollTo({top:scroll,behavior:'instant'});
+  if (!moved) return;
+  const card = [...app.querySelectorAll('[data-container-card]')].find(node => node.dataset.containerCard === id);
+  if (animate) {
+    app.querySelectorAll('[data-container-card]').forEach(node => {
+      const previous = before.get(node.dataset.containerCard), next = node.getBoundingClientRect();
+      if (previous && (Math.abs(previous.top-next.top)>.5 || Math.abs(previous.left-next.left)>.5)) {
+        containerMotions.push(node.animate([{transform:`translate(${previous.left-next.left}px,${previous.top-next.top}px)`},{transform:'none'}],{duration:240,easing:'cubic-bezier(.22,.68,.3,1)'}));
+      }
+    });
+  }
+  const button = card?.querySelector(`[data-direction="${direction}"]:not(:disabled)`) || card?.querySelector('.container-move:not(:disabled)') || card?.querySelector('a');
+  button?.focus({preventScroll:true});
+  const containers = orderedContainers(store.data), position = containers.findIndex(container => container.id === id)+1;
+  toast(`已${direction===-1?'上移':'下移'} · 第${position}个，共${containers.length}个`);
+  // # 仅跟随本次仍存在的卡片标题，避免旧动画结束后滚动新页面或弹窗。
+  const reveal = () => {
+    if (!card?.isConnected || overlay.querySelector('dialog[open]') || navigation?.busy) return;
+    const header = card.querySelector('.tank-title,.resident-panel-head'), rect = header?.getBoundingClientRect();
+    const top = (app.querySelector('.site-header')?.getBoundingClientRect().bottom || 0)+12;
+    const nav = app.querySelector('.bottom-nav'), bottom = nav && getComputedStyle(nav).display!=='none' ? nav.getBoundingClientRect().top-12 : innerHeight-12;
+    if (rect && (rect.top<top || rect.bottom>bottom)) window.scrollTo({top:Math.max(0,window.scrollY+rect.top-top),behavior:animate?'smooth':'instant'});
+  };
+  if (containerMotions.length) Promise.allSettled(containerMotions.map(animation=>animation.finished)).then(reveal);
+  else reveal();
+}
 function ensureContainers(onCreated = null) {
   if (store.data.containers.length) return true;
   openSheet('添加缸', containerForm(null), 'tank'); afterCreatingContainer = onCreated; toast('先添加一个缸'); return false;
@@ -235,7 +270,7 @@ function quickRecord(type, cid, reminderId = '') {
 }
 function openRecord(type = 'observe', containerId, record, forceForm = false, reminderId = '') {
   if (!ensureContainers(id => openRecord(type, id, record, forceForm, reminderId))) return;
-  const cid = containerId || store.data.containers[0].id;
+  const cid = containerId || orderedContainers(store.data)[0].id;
   if (!record && !forceForm && ['feed', 'siphon', 'topup'].includes(type)) return quickRecord(type, cid);
   const name = store.data.containers.find(c => c.id === cid)?.name || '';
   if (!openSheet(`${TYPES[type].label} · ${name}`, recordForm(store.data, cid, type, record), TYPES[type].icon)) return;
@@ -245,8 +280,8 @@ function openRecord(type = 'observe', containerId, record, forceForm = false, re
 }
 function chooseRecord(containerId) {
   if (!ensureContainers(id => chooseRecord(id))) return;
-  const cid = containerId || store.data.containers[0].id;
-  openSheet('记一笔', `<label class="field"><span>缸</span><select id="chooser-container">${store.data.containers.map(c => `<option value="${e(c.id)}" ${cid === c.id ? 'selected' : ''}>${e(c.name)}</option>`).join('')}</select></label><div class="type-chooser">${Object.entries(TYPES).map(([id, type]) => `<button data-action="chosen-record" data-type="${id}"><span class="chooser-icon ${type.color}">${icon(type.icon, 23)}</span>${type.label}</button>`).join('')}</div>`, 'book');
+  const cid = containerId || orderedContainers(store.data)[0].id;
+  openSheet('记一笔', `<label class="field"><span>缸</span><select id="chooser-container">${orderedContainers(store.data).map(c => `<option value="${e(c.id)}" ${cid === c.id ? 'selected' : ''}>${e(c.name)}</option>`).join('')}</select></label><div class="type-chooser">${Object.entries(TYPES).map(([id, type]) => `<button data-action="chosen-record" data-type="${id}"><span class="chooser-icon ${type.color}">${icon(type.icon, 23)}</span>${type.label}</button>`).join('')}</div>`, 'book');
 }
 async function saveRecord(form) {
   const values = collectRecord(form, recordDraft, photoDraft?.ids || []);
@@ -341,7 +376,7 @@ async function saveMember(form) {
 }
 function openNewAnimal(containerId = '', templateId = '') {
   if (!ensureContainers(id => openSheet('添加居民', animalForm(store.data, null, id, templateId), 'fish'))) return;
-  openSheet('添加居民', animalForm(store.data, null, containerId || store.data.containers[0].id, templateId), 'fish');
+  openSheet('添加居民', animalForm(store.data, null, containerId || orderedContainers(store.data)[0].id, templateId), 'fish');
 }
 function openReminders(containerId = '') {
   const returning = !!overlay.querySelector('.sheet-back[data-action="reminders"]') && reminderContainerId === containerId;
@@ -463,6 +498,7 @@ const actions = {
   'clear-day': () => { view.selectedDay = ''; render(); },
   'tank-history': b => { view.filters = { ...emptyFilters(), container: b.dataset.container }; view.filtersOpen = true; navigateRoute('history'); },
   'add-container': () => openSheet('添加缸', containerForm(null), 'tank'),
+  'move-container': moveContainerCard,
   'edit-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) openSheet('编辑缸', containerForm(c), 'tank'); },
   'delete-container': b => { const c = store.data.containers.find(c => c.id === b.dataset.id); if (c) confirmAction(`删除${c.name}？`, '缸内居民和历史记录也将删除。请先备份。', () => commitAndFinish(d => { d.containers = d.containers.filter(c => c.id !== b.dataset.id); d.animals = d.animals.filter(a => a.containerId !== b.dataset.id); d.records = d.records.filter(r => r.containerId !== b.dataset.id); d.settings.reminders = d.settings.reminders.filter(r => r.containerId !== b.dataset.id); }, '缸已删除'), '确定删除'); },
   'add-animal': b => openNewAnimal(b.dataset.container),
