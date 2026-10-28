@@ -35,7 +35,7 @@ export function recordSummary(record) {
     case 'topup': return d.liters ? `${d.liters} L` : '';
     case 'siphon': return [d.area, d.withWater ? '同时换水' : ''].filter(Boolean).join(' · ');
     case 'test': return WATER_FIELDS.filter(([key]) => d[key] !== undefined && d[key] !== '').map(([key, label, unit]) => `${label} ${d[key]}${unit ? ` ${unit}` : ''}`).join(' · ');
-    case 'death': return `${d.species || '生物'} · 死亡 ${d.quantity || ''} 只`;
+    case 'death': return `${d.species || '生物'} · 死亡 ${d.quantity || ''} 只${d.cause ? ' · ' + d.cause : ''}`;
     case 'add': return [d.species, d.quantity, d.length, d.source ? `来自 ${d.source}` : ''].filter(Boolean).join(' · ');
     case 'medication': case 'salt': return [d.category, d.name, d.dose].filter(Boolean).join(' · ');
     case 'equipment': return [d.task, d.detail].filter(Boolean).join(' · ') || '完成设备维护';

@@ -3,9 +3,10 @@ import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackS
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
 import { homePage, historyPage, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
-import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm } from './forms.js';
+import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm, deathSpeciesFields } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
+import { residentDeath, residentLosses, validateResidentDeath } from './mortality.js'; // # 死亡登记与居民共用记录来源。
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
 import { installNavigation } from './navigation.js';
@@ -13,7 +14,7 @@ import { dismissDialog, finishDialogMotion, transitionDialog, reducedMotion, ins
 import { presentDialog } from './dialog-layer.js'; // # 主弹窗与头像子窗共用滚动锁。
 import { installSheetLayout } from './sheet-layout.js';
 import { installSorting } from './sortable.js';
-import { PET_TEMPLATES, petIcon } from './pets.js';
+import { PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
 import { pauseTask, pauseResumeDate, resumeTask, taskState, tasksCalendar } from './tasks.js';
 import { isUntouchedStarter } from './starter-reset.js';
 import { setupPwa } from './pwa.js';
@@ -305,6 +306,7 @@ async function saveRecord(form) {
       if (removedAdditionProfiles(data, entry, selectedId).some(m => !accepted.has(m.id))) throw new Error('居民名字或头像已有变化，请重新编辑并确认。');
       putAddition(data, entry, selectedId); return;
     }
+    if (entry.type === 'death') validateResidentDeath(data, entry);
     // # 旧版吸便与换水配对记录编辑后仍保持同时间、同容器和双向引用。
     const linked = old?.linkedRecordId ? data.records.find(r => r.id === old.linkedRecordId) : null;
     if (linked) {
@@ -342,6 +344,9 @@ function saveAnimal(form) {
     if (form.dataset.id && index < 0) throw new Error('这个物种已被其他窗口删除。');
     if (removed(old).some(m => !accepted.has(m.id))) throw new Error('居民名单已有变化，请重新编辑并确认。');
     const next = { ...old, id, ...entry, displayName: old?.displayName && old.displayName !== old.species ? old.displayName : entry.species };
+    // # 数量编辑不得默默移除已故个体及头像；改错时先更正死亡登记。
+    if (old && membersFor(old).some(m => residentDeath(data, old.id, m.id) && !retained(old).some(n => n.id === m.id))) throw new Error('这次修改会移除已故居民，请先核对死亡登记。');
+    if (['exact', 'estimated'].includes(next.countType) && Number(next.countValue) < residentLosses(data, id)) throw new Error('只数包含已故居民，不能少于已登记的死亡数量。');
     if (old?.members) next.members = retained(old);
     if (entry.countType !== 'range') { delete next.countMin; delete next.countMax; }
     resetInventoryBaseline(old, next);
@@ -360,6 +365,23 @@ function openMember(button) {
   const animal = store.data.animals.find(a => a.id === button.dataset.animal); if (!animal) return;
   const members = membersFor(animal), index = members.findIndex(m => m.id === button.dataset.member), member = members[index]; if (!member) return;
   if (openSheet('名字与头像', memberForm(animal, member, index), animal.icon || 'fish')) initializePhotoDraft(member.avatarId ? [member.avatarId] : [], 'avatar', member);
+}
+// # 点开头像只查看；编辑和死亡登记是独立操作，沿用共用弹窗滚动锁和过渡。
+function viewMember(button, original = false) {
+  const animal = store.data.animals.find(a => a.id === button.dataset.animal);
+  if (!animal) return;
+  const member = membersFor(animal).find(m => m.id === button.dataset.member); if (!member) return;
+  const death = residentDeath(store.data, animal.id, member.id), name = member.name || animal.species;
+  const attrs = `data-animal="${e(animal.id)}" data-member="${e(member.id)}"`;
+  const photoId = original && member.avatarSourceId ? member.avatarSourceId : member.avatarId;
+  openSheet(name, `<div class="resident-profile"><div class="avatar-viewer">${photoId ? `<img data-photo-id="${e(photoId)}" alt="${e(name)}的${original ? '原图' : '头像'}">` : petIcon(member.templateId || animal.templateId || inferPetTemplate(animal.species,animal.icon), 180)}</div>${member.avatarSourceId ? `<button class="text-link" data-action="${original ? 'view-member' : 'view-avatar-original'}" ${attrs}>${original ? '查看头像' : '查看完整照片'}</button>` : ''}<p>${e(animal.species)}${member.length ? ` · ${e(member.length)}` : ''}</p>${death ? `<div class="resident-memorial"><strong>已故 · ${e(localDate(death.timestamp))}</strong><p>${e(death.details.cause || '原因未填写')}</p><button class="text-link" data-action="edit-record" data-id="${e(death.id)}">修改死亡登记</button></div>` : ''}</div><footer class="sheet-footer"><button class="button secondary" data-action="edit-member" ${attrs}>${icon('pen',16)}编辑居民</button>${death ? '<button class="button primary" data-action="close">完成</button>' : `<button class="button secondary" data-action="record-death" ${attrs}>登记死亡</button>`}</footer>`, animal.icon || 'fish');
+  hydratePhotos(overlay, photos);
+}
+function openResidentDeath(button) {
+  const animal = store.data.animals.find(a => a.id === button.dataset.animal); if (!animal) return;
+  const memberId = button.dataset.member || '', death = memberId && residentDeath(store.data, animal.id, memberId);
+  if (death) return openRecord('death', death.containerId, death);
+  openRecord('death', animal.containerId, { type: 'death', containerId: animal.containerId, timestamp: new Date().toISOString(), details: { species: animal.species, quantity: 1, animalId: animal.id, ...(memberId ? { memberId } : {}) } }, true);
 }
 async function saveMember(form) {
   const fd = new FormData(form), avatarId = photoDraft?.ids[0] || '', avatarSourceId = photoDraft?.avatarSourceId || '', avatarCrop = photoDraft?.avatarCrop;
@@ -407,7 +429,7 @@ function saveReminder(form) {
     const index = data.settings.reminders.findIndex(r => r.id === id), old = data.settings.reminders[index];
     if (form.dataset.id && !old) throw new Error('这个提醒已被其他窗口删除。');
     const next = { ...old, ...values, id, status: old?.status || 'active', createdAt: old?.createdAt || now, updatedAt: now };
-    if (old && taskState(data,old).autoResumed) { next.status = 'active'; delete next.pauseUntil; }
+    if (old && taskState(data,old).autoResumed) { next.resumedAt = taskState(data,old).resumeAt?.toISOString() || new Date(`${old.pauseUntil}T${old.time || '08:00'}:00`).toISOString(); next.startDate = values.startDate === old.startDate ? old.pauseUntil : values.startDate; next.status = 'active'; delete next.pauseUntil; }
     if (index < 0) data.settings.reminders.push(next); else data.settings.reminders[index] = next;
   }, '提醒已保存');
 }
@@ -478,13 +500,13 @@ const actions = {
     const effect = r.inventoryEffect, animal = store.data.animals.find(a => a.id === effect?.animalId);
     const named = animal ? membersFor(animal).filter(m => effect.memberIds.includes(m.id) && (m.name || m.avatarId)) : [];
     const accepted = new Set(named.map(m => m.id));
-    confirmAction('删除记录？', effect ? `居民名单将减去本次新增的 ${effect.quantity} 只。${named.length ? `包含 ${named.length} 个已有名字或头像的个体。` : ''}` : r.linkedRecordId ? '关联的吸便与换水记录将一并删除。' : '删除后可通过备份恢复。', () => commitAndFinish(d => {
+    confirmAction('删除记录？', effect ? `居民名单将减去本次新增的 ${effect.quantity} 只。${named.length ? `包含 ${named.length} 个已有名字或头像的个体。` : ''}` : r.linkedRecordId ? '关联的吸便与换水记录将一并删除。' : r.type === 'death' && r.details.animalId ? '删除死亡登记后，对应居民的存活状态和数量会恢复。' : '删除后可通过备份恢复。', () => commitAndFinish(d => {
       const current = d.records.find(item => item.id === r.id);
       if (current && current.updatedAt !== r.updatedAt) throw new Error('记录已有变化，请重新打开并确认。');
       const a = d.animals.find(item => item.id === current?.inventoryEffect?.animalId);
       if (a && membersFor(a).some(m => current.inventoryEffect.memberIds.includes(m.id) && (m.name || m.avatarId) && !accepted.has(m.id))) throw new Error('居民名字或头像已有变化，请重新打开并确认。');
       deleteDiaryRecord(d, r.id);
-    }, effect ? '记录与居民已同步删除' : '已删除'), '确定删除', effect ? `<button class="text-link" data-action="delete-record-only" data-id="${e(r.id)}">仅删除记录，保留居民</button>` : '');
+    }, effect ? '记录与居民已同步删除' : r.type === 'death' && r.details.animalId ? '死亡登记已删除，居民状态已恢复' : '已删除'), '确定删除', effect ? `<button class="text-link" data-action="delete-record-only" data-id="${e(r.id)}">仅删除记录，保留居民</button>` : '');
   },
   'delete-record-only': b => commitAndFinish(d => deleteDiaryRecord(d, b.dataset.id, true), '记录已删除，居民保留'),
   'undo-record': () => { const id = undoRecordId; if (!id) return; const r = store.data.records.find(r => r.id === id); store.commit(d => { d.records = d.records.filter(r => r.id !== id); }); if (r) quickTapTimes.delete(`${r.containerId}:${r.type}`); render(); toast('已撤销'); },
@@ -506,6 +528,9 @@ const actions = {
   'edit-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) openSheet('物种与数量', animalForm(store.data, a, a.containerId), a.icon || 'fish'); },
   'delete-animal': b => { const a = store.data.animals.find(a => a.id === b.dataset.id); if (a) confirmAction(`删除${a.species}？`, '个体名字和头像引用将移除，历史维护记录保留。', () => commitAndFinish(d => { d.animals = d.animals.filter(a => a.id !== b.dataset.id); }, '已移除'), '确定删除'); },
   'edit-member': openMember,
+  'view-member': b => viewMember(b),
+  'view-avatar-original': b => viewMember(b, true),
+  'record-death': openResidentDeath,
   'edit-avatar-crop': editDraftAvatar,
   'remove-draft-photo': b => {
     if (!photoDraft || photoDraft.busy || modalBusy) return;
@@ -519,7 +544,7 @@ const actions = {
   'export-csv': () => { downloadFile(`水族记录-${localDate()}.csv`, csvText(store.data), 'text/csv'); toast('记录表格已导出'); },
   'raw-export': () => { downloadFile(`水族日记-原始数据-${localDate()}.txt`, store.raw ?? JSON.stringify(store.data), 'text/plain'); toast('原始数据已导出'); },
   import: () => document.getElementById('import-file')?.click(),
-  'clear-records': () => confirmAction('仅清空维护记录？', `将清空 ${store.data.records.length} 条记录。${CLEAN_RECORDS_COPY} 操作不能直接撤销。`, () => commitAndFinish(clearDiaryRecords, '维护记录已清空'), '清空维护记录', '<button class="text-link" data-action="export-json">先备份当前数据</button>')
+  'clear-records': () => confirmAction('仅清空维护记录？', `将清空 ${store.data.records.filter(r => !(r.type === 'death' && r.details.animalId)).length} 条维护记录。${CLEAN_RECORDS_COPY} 操作不能直接撤销。`, () => commitAndFinish(clearDiaryRecords, '维护记录已清空'), '清空维护记录', '<button class="text-link" data-action="export-json">先备份当前数据</button>')
 };
 document.addEventListener('click', async event => {
   if (event.target.closest('.skip-link')) { event.preventDefault(); document.getElementById('main')?.focus(); return; }
@@ -571,6 +596,13 @@ document.addEventListener('change', async event => {
       const animal = store.data.animals.find(a => a.id === chosen);
       const species = field.name === 'inventoryAnimalId' && animal ? animal.species : form.elements.species.value;
       document.getElementById('addition-species-fields').outerHTML = additionSpeciesFields(store.data, cid, recordDraft, chosen, species);
+    }
+    else if (field.closest('#record-form')?.dataset.type === 'death' && ['animalId', 'memberId', 'containerId'].includes(field.name)) {
+      const form = field.closest('form'), cid = form.elements.containerId.value;
+      const selected = field.name === 'containerId' ? '' : form.elements.animalId.value;
+      const member = field.name === 'memberId' ? field.value : '';
+      const draft = { ...recordDraft, details: { ...recordDraft?.details, species: form.elements.species.value, quantity: form.elements.quantity.value } };
+      document.getElementById('death-species-fields').outerHTML = deathSpeciesFields(store.data, cid, draft, selected, member);
     }
     else if (field.name === 'countType') { const form = field.closest('form'), existing = store.data.animals.find(a => a.id === form.dataset.id); document.getElementById('animal-count-fields').innerHTML = countFields(field.value, existing); }
   } catch (error) { toast(error.message, true); }

@@ -138,6 +138,12 @@ export function validateData(input) {
       if (r.details[key] !== undefined && (!Number.isFinite(Number(r.details[key])) || Number(r.details[key]) <= 0 || (key === 'percent' && Number(r.details[key]) > 100))) fail('水量无效');
     }
     if (r.type === 'death' && (!validText(r.details.species, 100) || !r.details.species.trim() || !Number.isInteger(Number(r.details.quantity)) || Number(r.details.quantity) <= 0)) fail('死亡记录需要物种和正整数数量');
+    // # 关联字段是可选扩展；删除居民后历史记录仍可读取。
+    if (r.type === 'death') {
+      for (const key of ['animalId', 'memberId']) if (r.details[key] !== undefined && (!validText(r.details[key],150) || !r.details[key])) fail('死亡登记关联无效');
+      if (r.details.memberId && (!r.details.animalId || Number(r.details.quantity) !== 1)) fail('个体死亡登记无效');
+      if (r.details.cause !== undefined && !validText(r.details.cause,5000)) fail('死亡原因无效');
+    }
     if (r.photoIds !== undefined && (!Array.isArray(r.photoIds) || r.photoIds.length > 3 || new Set(r.photoIds).size !== r.photoIds.length || r.photoIds.some(id => !validText(id, 150) || !/^[a-zA-Z0-9_-]{1,150}$/.test(id)))) fail('照片引用无效');
     if (r.type === 'observe' && (!(validText(r.details.text) && r.details.text.trim()) && !r.photoIds?.length)) fail('观察内容或照片为空');
     if (r.type === 'custom' && (!validText(r.details.title, 300) || !r.details.title.trim())) fail('事件名称为空');
@@ -163,7 +169,7 @@ export function validateData(input) {
     if (rule.time !== undefined && (typeof rule.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(rule.time))) fail('提醒时间无效');
     if (rule.startDate !== undefined && !validDay(rule.startDate)) fail('提醒开始日期无效');
     if (rule.pauseUntil !== undefined && !validDay(rule.pauseUntil)) fail('提醒恢复日期无效');
-    for (const field of ['createdAt', 'updatedAt', 'pausedAt']) if (rule[field] !== undefined && !dateValid(rule[field])) fail('提醒日期无效');
+    for (const field of ['createdAt', 'updatedAt', 'pausedAt', 'resumedAt']) if (rule[field] !== undefined && !dateValid(rule[field])) fail('提醒日期无效');
     if (rule.title !== undefined && !validText(rule.title, 100)) fail('提醒标题无效');
     if (rule.pauseReason !== undefined && !validText(rule.pauseReason, 1000)) fail('暂停原因过长');
   }

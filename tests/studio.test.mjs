@@ -65,19 +65,19 @@ test('到时出现待办，实际维护后转为下一次提醒，未来记录�
   const state = taskState(data, rule, new Date('2026-10-15T09:00:00'));
   assert.equal(state.state, 'upcoming'); assert.equal(state.nextDue.getDate(), 16); assert.equal(state.nextDue.getHours(), 8);
 });
-test('从任务提前完成可记录本次；其他缸、任务和另一个提醒不误完成', () => {
+test('从任务提前完成可记录本次；其他缸和任务不误完成，同类提醒共享实际记录', () => {
   const data = taskData(), rule = data.settings.reminders[0];
-  data.records.push(care('other-tank', '2026-10-15T08:10:00+08:00', { containerId: 'other' }), care('other-type', '2026-10-15T08:10:00+08:00', { type: 'topup' }), care('other-task', '2026-10-15T08:10:00+08:00', { reminderId: 'other-task' }));
+  data.records.push(care('other-tank', '2026-10-15T08:10:00+08:00', { containerId: 'other' }), care('other-type', '2026-10-15T08:10:00+08:00', { type: 'topup' }), care('other-task', '2026-10-15T08:10:00+08:00', { reminderId: 'other-task', type: 'water' }));
   assert.equal(taskState(data, rule, new Date('2026-10-15T09:00:00')).state, 'due');
   data.records.push(care('early', '2026-10-15T07:00:00+08:00', { reminderId: rule.id }));
   assert.equal(taskState(data, rule, new Date('2026-10-15T07:30:00')).nextDue.getDate(), 16);
   data.records.pop(); assert.equal(taskState(data, rule, new Date('2026-10-15T09:00:00')).state, 'due');
 });
-test('跨午夜未完成任务仍到期，完成后保持原计划日期和天数', () => {
+test('跨午夜未完成任务仍到期，完成后从实际日期重新计算间隔', () => {
   const data = taskData(), rule = data.settings.reminders[0]; rule.days = 3;
   assert.equal(taskState(data, rule, new Date('2026-10-16T07:00:00')).state, 'due');
   data.records.push(care('late', '2026-10-16T07:00:00+08:00'));
-  const state = taskState(data, rule, new Date('2026-10-16T07:30:00')); assert.equal(state.nextDue.getDate(), 18); assert.equal(state.nextDue.getHours(), 8);
+  const state = taskState(data, rule, new Date('2026-10-16T07:30:00')); assert.equal(state.nextDue.getDate(), 19); assert.equal(state.nextDue.getHours(), 8);
 });
 test('夏令时前后按本地日历重复，保持每天同一时刻', () => {
   process.env.TZ = 'America/New_York';

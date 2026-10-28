@@ -1,16 +1,16 @@
 <h1 align="center">小小水族日记</h1>
 <p align="center">照顾好，也记录好。</p>
 
-[![v1.7.0 宣传页首屏，真实 App 界面，演示数据](dist/media/cover-v1.7.0.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#overview)
+[![v1.8.0 宣传页首屏，真实 App 界面，演示数据](dist/media/cover-v1.8.0.jpg)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#overview)
 
 <p align="center"><a href="https://jiangyt1412.github.io/little-aqua-diary/"><strong>打开日记 ↗</strong></a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html">图文介绍</a>　 ·　 <a href="https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo">产品短片 ▶</a></p>
-<p align="center"><strong>Version 1.7.0</strong> · 2026-10-21</p>
+<p align="center"><strong>Version 1.8.0</strong> · 2026-10-28</p>
 
 ## 从日常照顾，到一月回看。
 
 小小水族日记，把每个缸的照顾、居民和记录放在一起。从空白日记开始，缸、名字和居民都由你创建。
 
-![首页、维护月历与居民三屏功能介绍，真实界面，演示数据](dist/media/product-showcase-v1.7.0.png)
+![首页、维护月历与居民三屏功能介绍，真实界面，演示数据](dist/media/product-showcase-v1.8.0.png)
 
 | 01 · 随手记录 | 02 · 一月回看 | 03 · 认识居民 |
 | --- | --- | --- |
@@ -19,39 +19,44 @@
 ## 细节，也能按你的方式来。
 
 <table>
-<tr><td align="center" width="50%"><h3>头像，留住它的模样。</h3><img src="dist/media/phone-avatar-v1.7.0.jpg" width="300" alt="真实头像裁剪界面，演示插画"><p>上传照片后拖动、缩放、旋转取景。<br>以后也可以重新裁剪。</p></td><td align="center" width="50%"><h3>提醒，按自己的节奏。</h3><img src="dist/media/phone-pause-v1.7.0.jpg" width="300" alt="真实提醒暂停界面，演示数据"><p>暂停几天、指定恢复日期，或手动恢复。<br>也能记下这次暂停的原因。</p></td></tr>
+<tr><td align="center" width="50%"><h3>头像，留住它的模样。</h3><img src="dist/media/phone-avatar-v1.8.0.jpg" width="300" alt="真实头像裁剪界面，演示插画"><p>上传照片后拖动、缩放、旋转取景。<br>以后也可以重新裁剪。</p></td><td align="center" width="50%"><h3>提醒，按自己的节奏。</h3><img src="dist/media/phone-pause-v1.8.0.jpg" width="300" alt="真实提醒暂停界面，演示数据"><p>暂停几天、指定恢复日期，或手动恢复。<br>也能记下这次暂停的原因。</p></td></tr>
 </table>
 
 用缸标题旁的 ↑ / ↓ 调整顺序，自动保存并同步到记录与居民。记录还可以按缸分行，共用时间刻度回看。日记与照片保存在当前浏览器，完整备份可包含照片与头像取景副本。
 
 ## 完整产品短片 · 24 秒
 
-[![播放完整24秒产品短片，静态封面，真实界面与演示数据](dist/media/film-poster-v1.7.0.png)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
+[![播放完整24秒产品短片，静态封面，真实界面与演示数据](dist/media/film-poster-v1.8.0.png)](https://jiangyt1412.github.io/little-aqua-diary/intro.html#demo)
 
 点击封面进入播放器，播放完整短片（含声音），可暂停或拖动进度。
 
-[观看 24 秒产品短片 · MP4](dist/media/demo-v1.7.0.mp4)
+[观看 24 秒产品短片 · MP4](dist/media/demo-v1.8.0.mp4)
 
 <details>
 <summary><strong>更多实际界面与像素形象</strong></summary>
 
 <table>
-<tr><td align="center"><img src="dist/media/phone-home-v1.7.0.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.7.0.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
-<tr><td align="center"><img src="dist/media/phone-history-v1.7.0.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.7.0.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
+<tr><td align="center"><img src="dist/media/phone-home-v1.8.0.jpg" width="270" alt="当前首页，演示数据"><br>首页</td><td align="center"><img src="dist/media/phone-residents-v1.8.0.jpg" width="270" alt="当前居民界面，演示数据"><br>居民</td></tr>
+<tr><td align="center"><img src="dist/media/phone-history-v1.8.0.jpg" width="270" alt="当前共享时间轴，演示数据"><br>记录</td><td align="center"><img src="dist/media/phone-tank-v1.8.0.jpg" width="270" alt="当前维护月历，演示数据"><br>维护月历</td></tr>
 </table>
 
-![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.7.0.png)
+![原生居民形象与四款缸景模板](dist/media/pixel-library-v1.8.0.png)
 
 </details>
 
 画面使用演示资料，名字和记录为示例，照片附件为项目像素插画。首次打开 App 为空白日记。图文布局参考用户提供的三屏示例，展示内容全部来自本项目。
 
-## 本次更新 · v1.7.0
+## 本次更新 · v1.8.0
 
-- 首页与居民页的缸标题旁新增 ↑ / ↓，可以调整缸的先后顺序，自动保存。
-- 首页、居民、记录分行、筛选及选择列表共用同一顺序；备份恢复后保留。
-- 移动时有位置过渡并保留焦点，首尾箭头禁用越界操作；支持减少动态效果。
-- 新截图展示当前排序按钮。完整短片与静态播放封面沿用 v1.6.11 源片，未重新录制广告影片。
+- **头像点开查看**：点击居民头像查看大图与完整照片，独立保留编辑与裁剪入口。
+- **居民死亡登记**：记录死亡时间和原因，关联居民及日记，保留名字和头像；修改或删除登记后同步存活数量。
+- **提醒跟随实际操作**：同一缸同一行为的最新实际记录决定下次日期；26日换水、间隔3天，下次为29日。补记、修改和删除后重新计算。
+- 外部日历是导出快照，App 自动调整日期后需重新导出或手动更改外部日历。
+- 当前界面截图重新采集；24 秒广告短片沿用 v1.6.11 源片，本次功能另附真实演示录像。
+
+[观看本次功能演示（演示数据）](dist/media/resident-care-v1.8.0.mp4)
+
+<table><tr><td align="center"><img src="dist/media/phone-avatar-view-v1.8.0.jpg" width="300" alt="点开头像查看，演示数据"><br>头像大图</td><td align="center"><img src="dist/media/phone-death-v1.8.0.jpg" width="300" alt="死亡登记与原因，演示数据"><br>居民死亡登记</td></tr></table>
 
 [所有版本的更新](CHANGELOG.md) · [版本号怎样区分](docs/VERSIONS.md) · [验收与设备范围](验收记录.md)
 

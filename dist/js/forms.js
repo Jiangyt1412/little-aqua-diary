@@ -1,5 +1,6 @@
 // # 常用操作只记时间，编辑表单保留旧版数据；昵称和头像单独编辑。
-import { TYPES, WATER_FIELDS, countLabel, diaryName, diaryNameLength, DIARY_NAME_MAX, orderedContainers } from './data.js';
+import { TYPES, WATER_FIELDS, countLabel, diaryName, diaryNameLength, DIARY_NAME_MAX, orderedContainers, membersFor } from './data.js';
+import { residentDeath, residentLosses, livingAnimal } from './mortality.js';
 import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
@@ -30,7 +31,7 @@ export function recordForm(data, containerId, type, record) {
     case 'water': fields = `<div class="field-grid">${field('换水量 · L', 'liters', d.liters, number + ' placeholder="如 12"')}${field('或比例 · %', 'percent', d.percent, number + ' max="100" placeholder="如 30"')}</div>`; break;
     case 'observe': fields = textarea('观察', 'text', d.text, '记下发现…') + photoFields(record?.photoIds || []); break;
     case 'test': fields = `<div class="field-grid">${WATER_FIELDS.slice(0, 5).map(([key, label, unit, min, max]) => field(`${label}${unit ? ` · ${unit}` : ''}`, key, d[key], `type="number" inputmode="decimal" step="any" min="${min}" ${max === null ? '' : `max="${max}"`} placeholder="选填"`)).join('')}</div><details class="extra-fields"><summary>其他参数</summary><div class="field-grid">${WATER_FIELDS.slice(5).map(([key, label, unit, min]) => field(`${label} · ${unit}`, key, d[key], `type="number" inputmode="decimal" step="any" min="${min}"`)).join('')}</div></details>`; break;
-    case 'death': fields = field('物种', 'species', d.species, text + ' required') + field('死亡数量', 'quantity', d.quantity, 'type="number" min="1" step="1" inputmode="numeric" required'); break;
+    case 'death': fields = deathSpeciesFields(data, containerId, record) + textarea('死亡原因 · 选填', 'cause', d.cause, '如观察到的症状；不确定时可填写原因不明'); break;
     case 'add': fields = additionSpeciesFields(data, containerId, record) + field('新增数量 · 只', 'quantity', d.quantity, record?.id && !record.inventoryEffect ? text + ' required' : 'type="number" min="1" step="1" inputmode="numeric" required') + `<details class="extra-fields"><summary>体长与来源</summary>${field('体长', 'length', d.length, text)}${field('来源', 'source', d.source, text)}</details>`; break;
     case 'medication': case 'salt': fields = field('名称', 'name', d.name ?? (type === 'salt' ? '盐' : ''), text + ' required') + field('剂量', 'dose', d.dose, text + ' required placeholder="如 20 g、5 ml"'); break;
     case 'equipment': fields = selectField('维护项目', 'task', ['过滤器清洗', '水妖精清洗', '水泵维护', '气石更换', '加热棒调整', '灯具调整', '其他'].map(v => [v, v]), d.task || '过滤器清洗'); break;
@@ -49,6 +50,17 @@ export function additionSpeciesFields(data, containerId, record, selectedId, spe
   if (selected && !animal) items.push([selected, `${d.species || '原物种'}（已移除）`]);
   return `<div id="addition-species-fields">${selectField('物种', 'inventoryAnimalId', items, selected)}${selected ? `<input type="hidden" name="species" value="${e(species ?? d.species ?? animal?.species)}">` : field('新物种名称', 'species', species ?? d.species, 'type="text" maxlength="100" required placeholder="如 黑壳虾"')}<p class="inventory-hint">${animal && ['unknown', 'text'].includes(animal.countType) ? '总数待统计，另记新增只数。' : '保存后同步居民。'}</p></div>`;
 }
+// # 旧死亡记录不自动关联；从居民进入时明确选定物种或个体。
+export function deathSpeciesFields(data, containerId, record, selectedId, memberId) {
+  const d = record?.details || {}, selected = selectedId ?? d.animalId ?? '', member = memberId ?? d.memberId ?? '';
+  const animals = data.animals.filter(a => a.containerId === containerId), animal = data.animals.find(a => a.id === selected);
+  const choices = [['', '仅记历史，不关联居民'], ...animals.map(a => [a.id, a.species])];
+  if (selected && !animals.some(a => a.id === selected)) choices.push([selected, `${d.species || animal?.species || '原居民'}（原关联）`]);
+  const members = animal ? membersFor(animal).filter(m => m.id === member || !residentDeath(data, animal.id, m.id)) : [];
+  const memberChoices = [['', '按数量登记'], ...members.map((m,i) => [m.id, m.name || `居民 ${i + 1}`])];
+  if (member && !members.some(m => m.id === member)) memberChoices.push([member, '原个体（已移除）']);
+  return `<div id="death-species-fields">${selectField('关联居民', 'animalId', choices, selected)}${selected ? `<input type="hidden" name="species" value="${e(animal?.species || d.species)}">${selectField('个体', 'memberId', memberChoices, member)}` : field('物种', 'species', d.species, 'type="text" maxlength="100" required')} ${field('死亡数量', 'quantity', member ? 1 : d.quantity || 1, `type="number" min="1" step="1" inputmode="numeric" required ${member ? 'readonly' : ''}`)}${selected ? '<p class="form-note">保存后同步居民状态；名字和头像会保留。</p>' : ''}</div>`;
+}
 export function collectRecord(form, original, photoIds = []) {
   const fd = new FormData(form), type = String(fd.get('type'));
   const date = new Date(fd.get('timestamp')); if (!Number.isFinite(date.getTime())) throw new Error('请填写有效时间。');
@@ -56,6 +68,7 @@ export function collectRecord(form, original, photoIds = []) {
   const timestamp = original?.timestamp && date.getTime() === new Date(localDateTime(original.timestamp)).getTime() ? original.timestamp : date.toISOString();
   const details = original?.type === type ? { ...original.details } : {};
   const ignored = new Set(['type', 'containerId', 'timestamp', 'notes', 'photo-file', 'inventoryAnimalId']);
+  if (type === 'death') { delete details.animalId; delete details.memberId; }
   if (type === 'water') { delete details.liters; delete details.percent; }
   for (const [key, value] of fd) if (!ignored.has(key) && typeof value === 'string') {
     if (value.trim()) details[key] = value.trim(); else delete details[key];
@@ -79,7 +92,7 @@ export function animalForm(data, a, containerId, templateId = '') {
   const selected = templateId || a?.templateId || inferPetTemplate(a?.species, a?.icon);
   const preset = PET_TEMPLATES.find(p => p.id === selected) || PET_TEMPLATES.find(p => p.id === 'crucian'), species = a?.species || preset.species;
   const initial = a || { countType: 'exact', countValue: selected === 'guppy-gold' ? '4' : '1' };
-  return `<form data-form="animal" data-id="${e(a?.id || '')}" data-auto-species="${e(species)}">${petPicker(selected, !a && !templateId)}${field('物种名称', 'species', species, 'type="text" maxlength="100" required')}<div class="field-grid">${selectField('数量', 'countType', [['exact', '精确'], ['estimated', '约数'], ['range', '区间'], ['unknown', '未知'], ['text', '文字描述']], initial.countType)}${selectField('容器', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), a?.containerId || containerId)}</div><div id="animal-count-fields">${countFields(initial.countType, initial)}</div><details class="extra-fields" ${a?.uncertain ? 'open' : ''}><summary>更多信息 · 选填</summary><label class="check-field"><input type="checkbox" name="uncertain" ${a?.uncertain ? 'checked' : ''}><span>物种待确认</span></label>${field('体长', 'length', a?.length, text)}${textarea('备注', 'notes', a?.notes)}</details>${formFooter('保存', a ? `<button type="button" class="button danger-quiet" data-action="delete-animal" data-id="${e(a.id)}">${icon('trash', 16)}删除</button>` : '')}</form>`;
+  return `<form data-form="animal" data-id="${e(a?.id || '')}" data-auto-species="${e(species)}">${petPicker(selected, !a && !templateId)}${field('物种名称', 'species', species, 'type="text" maxlength="100" required')}<div class="field-grid">${selectField('数量', 'countType', [['exact', '精确'], ['estimated', '约数'], ['range', '区间'], ['unknown', '未知'], ['text', '文字描述']], initial.countType)}${selectField('容器', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), a?.containerId || containerId)}</div><div id="animal-count-fields">${countFields(initial.countType, initial)}</div>${a && residentLosses(data,a.id) ? `<p class="form-note">名单只数包含已故居民。已登记死亡 ${residentLosses(data,a.id)} 只，当前存活 ${e(countLabel(livingAnimal(data,a)))}。</p>` : ''}<details class="extra-fields" ${a?.uncertain ? 'open' : ''}><summary>更多信息 · 选填</summary><label class="check-field"><input type="checkbox" name="uncertain" ${a?.uncertain ? 'checked' : ''}><span>物种待确认</span></label>${field('体长', 'length', a?.length, text)}${textarea('备注', 'notes', a?.notes)}</details>${formFooter('保存', a ? `<button type="button" class="button danger-quiet" data-action="delete-animal" data-id="${e(a.id)}">${icon('trash', 16)}删除</button>` : '')}</form>`;
 }
 export function countFields(type, a = {}) {
   if (type === 'range') return `<div class="field-grid">${field('最少', 'countMin', a?.countMin ?? '', 'type="number" min="0" step="1" inputmode="numeric" required')}${field('最多', 'countMax', a?.countMax ?? '', 'type="number" min="0" step="1" inputmode="numeric" required')}</div>`;
@@ -95,7 +108,7 @@ function membersCount(a) { return a.countType === 'exact' ? Number(a.countValue)
 // # 重复提醒保持短表单；暂停原因存入日记备份，不作健康建议。
 export function reminderForm(data, rule, containerId = '') {
   const startDate = rule && taskState(data,rule).autoResumed ? rule.pauseUntil : rule?.startDate;
-  return `<form data-form="reminder" data-id="${e(rule?.id || '')}">${selectField('缸', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), rule?.containerId || containerId || orderedContainers(data)[0]?.id)}${selectField('任务', 'type', ['feed', 'siphon', 'water', 'topup'].map(type => [type, TYPES[type].label]), rule?.type || 'feed')}<div class="field-grid reminder-clock">${field('间隔天数', 'days', rule?.days || 1, 'type="number" min="1" max="3650" step="1" inputmode="numeric" required aria-describedby="repeat-help"')}${field('提醒时间', 'time', rule?.time || '08:00', 'type="time" required')}</div><p class="form-note repeat-help" id="repeat-help">每天填 1，每三天填 3。保存后可随时暂停几天。</p>${field('开始日期', 'startDate', startDate || localDateTime().slice(0, 10), 'type="date" required')}<details class="extra-fields"><summary>备注名称 · 选填</summary>${field('名称', 'title', rule?.title, 'type="text" maxlength="100" placeholder="如 少量喂食"')}${rule?.pauseReason ? `<p class="pause-history">上次暂停：${e(rule.pauseReason)}</p>` : ''}</details>${formFooter('保存', rule ? `<button type="button" class="button danger-quiet" data-action="delete-reminder" data-id="${e(rule.id)}">删除提醒</button>` : '')}</form>`;
+  return `<form data-form="reminder" data-id="${e(rule?.id || '')}">${selectField('缸', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), rule?.containerId || containerId || orderedContainers(data)[0]?.id)}${selectField('任务', 'type', ['feed', 'siphon', 'water', 'topup'].map(type => [type, TYPES[type].label]), rule?.type || 'feed')}<div class="field-grid reminder-clock">${field('间隔天数', 'days', rule?.days || 1, 'type="number" min="1" max="3650" step="1" inputmode="numeric" required aria-describedby="repeat-help"')}${field('提醒时间', 'time', rule?.time || '08:00', 'type="time" required')}</div><p class="form-note repeat-help" id="repeat-help">每天填 1，每三天填 3。保存后可随时暂停几天。</p>${field('开始日期', 'startDate', startDate || localDateTime().slice(0, 10), 'type="date" required')}<details class="extra-fields"><summary>备注名称 · 选填</summary>${field('名称', 'title', rule?.title, 'type="text" maxlength="100" placeholder="如 少量喂食"')}${rule?.pauseReason ? `<p class="pause-history">上次暂停：${e(rule.pauseReason)}</p>` : ''}</details><p class="form-note">记录实际操作后，下次提醒按操作日期加间隔天数计算；修改或删除记录也会同步。</p>${formFooter('保存', rule ? `<button type="button" class="button danger-quiet" data-action="delete-reminder" data-id="${e(rule.id)}">删除提醒</button>` : '')}</form>`;
 }
 export function pauseForm(rule) {
   const today = localDateTime().slice(0,10), timed = rule.status === 'paused' && rule.pauseUntil > today;

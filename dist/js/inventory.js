@@ -116,7 +116,7 @@ export function deleteDiaryRecord(data, id, onlyRecord = false) {
 }
 export function clearDiaryRecords(data) {
   data.animals.forEach(a => { if (['unknown', 'text'].includes(a.countType)) a.knownAddedBase = a.knownAdded || 0; });
-  data.records = [];
+  data.records = data.records.filter(r => r.type === 'death' && r.details.animalId); // # 保留居民死亡状态，避免清维护记录导致复活。
 }
 // # 手动盘点建立新的未知数量基线，不把旧新增记录重新累计。
 export function resetInventoryBaseline(old, next) {
