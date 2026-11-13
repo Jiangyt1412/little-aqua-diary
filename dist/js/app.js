@@ -2,10 +2,11 @@
 import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel, orderedContainers, moveContainer } from './data.js';
 import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
-import { homePage, historyPage, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
+import { homePage, historyPage, historyResults, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm, deathSpeciesFields } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
+import { isTurtle, growthPanel, growthTargetFields, validateGrowthRecord } from './growth.js'; // # 个体测量与曲线共用记录。
 import { residentDeath, residentLosses, validateResidentDeath } from './mortality.js'; // # 死亡登记与居民共用记录来源。
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
@@ -91,6 +92,29 @@ function render() {
     if (replacement) { replacement.focus({ preventScroll: true }); if (typeof selection === 'number' && ['search', 'text'].includes(replacement.type)) replacement.setSelectionRange(selection, selection); }
   }
 }
+// # 局部刷新结果，输入框节点不更换；Safari 键盘与中文组合输入不会被 render 打断。
+function renderHistoryResults() {
+  if (view.page !== 'history') return;
+  const output = document.getElementById('history-output');
+  if (!output) return;
+  output.querySelectorAll('[data-timeline-day]').forEach(el => timelinePositions.set(el.dataset.timelineDay,el.scrollLeft));
+  output.innerHTML = historyResults(store.data,view);
+  hydratePhotos(output,photos); positionTimelines(output,timelinePositions);
+}
+let searchComposing = false;
+function updateHistorySearch(field, composing = false) {
+  clearTimeout(searchTimer);
+  if (composing) return;
+  view.filters.search = field.value; view.historyDay = ''; view.historyLimit = 100;
+  searchTimer = setTimeout(renderHistoryResults,160);
+}
+document.addEventListener('compositionstart', event => {
+  if (event.target.dataset.filterField === 'search') { searchComposing = true; clearTimeout(searchTimer); }
+});
+document.addEventListener('compositionend', event => {
+  if (event.target.dataset.filterField === 'search') { searchComposing = false; updateHistorySearch(event.target); }
+});
+
 function toast(message, error = false, undo = '') {
   const root = document.getElementById('toast-root'); undoRecordId = undo || null;
   root.innerHTML = `<div class="toast ${error ? 'error' : ''}">${icon(error ? 'bell' : 'check', 16)}<span>${e(message)}</span>${undo ? '<button data-action="undo-record">撤销</button>' : ''}</div>`;
@@ -307,6 +331,7 @@ async function saveRecord(form) {
       putAddition(data, entry, selectedId); return;
     }
     if (entry.type === 'death') validateResidentDeath(data, entry);
+    if (entry.type === 'growth') validateGrowthRecord(data, entry);
     // # 旧版吸便与换水配对记录编辑后仍保持同时间、同容器和双向引用。
     const linked = old?.linkedRecordId ? data.records.find(r => r.id === old.linkedRecordId) : null;
     if (linked) {
@@ -374,7 +399,7 @@ function viewMember(button, original = false) {
   const death = residentDeath(store.data, animal.id, member.id), name = member.name || animal.species;
   const attrs = `data-animal="${e(animal.id)}" data-member="${e(member.id)}"`;
   const photoId = original && member.avatarSourceId ? member.avatarSourceId : member.avatarId;
-  openSheet(name, `<div class="resident-profile"><div class="avatar-viewer">${photoId ? `<img data-photo-id="${e(photoId)}" alt="${e(name)}的${original ? '原图' : '头像'}">` : petIcon(member.templateId || animal.templateId || inferPetTemplate(animal.species,animal.icon), 180)}</div>${member.avatarSourceId ? `<button class="text-link" data-action="${original ? 'view-member' : 'view-avatar-original'}" ${attrs}>${original ? '查看头像' : '查看完整照片'}</button>` : ''}<p>${e(animal.species)}${member.length ? ` · ${e(member.length)}` : ''}</p>${death ? `<div class="resident-memorial"><strong>已故 · ${e(localDate(death.timestamp))}</strong><p>${e(death.details.cause || '原因未填写')}</p><button class="text-link" data-action="edit-record" data-id="${e(death.id)}">修改死亡登记</button></div>` : ''}</div><footer class="sheet-footer"><button class="button secondary" data-action="edit-member" ${attrs}>${icon('pen',16)}编辑居民</button>${death ? '<button class="button primary" data-action="close">完成</button>' : `<button class="button secondary" data-action="record-death" ${attrs}>登记死亡</button>`}</footer>`, animal.icon || 'fish');
+  openSheet(name, `<div class="resident-profile"><div class="avatar-viewer">${photoId ? `<img data-photo-id="${e(photoId)}" alt="${e(name)}的${original ? '原图' : '头像'}">` : petIcon(member.templateId || animal.templateId || inferPetTemplate(animal.species,animal.icon), 180)}</div>${member.avatarSourceId ? `<button class="text-link" data-action="${original ? 'view-member' : 'view-avatar-original'}" ${attrs}>${original ? '查看头像' : '查看完整照片'}</button>` : ''}<p>${e(animal.species)}${member.length ? ` · ${e(member.length)}` : ''}</p>${isTurtle(animal) ? `<button class="button secondary" data-action="view-growth" ${attrs}>成长记录与曲线</button>` : ''}${death ? `<div class="resident-memorial"><strong>已故 · ${e(localDate(death.timestamp))}</strong><p>${e(death.details.cause || '原因未填写')}</p><button class="text-link" data-action="edit-record" data-id="${e(death.id)}">修改死亡登记</button></div>` : ''}</div><footer class="sheet-footer"><button class="button secondary" data-action="edit-member" ${attrs}>${icon('pen',16)}编辑居民</button>${death ? '<button class="button primary" data-action="close">完成</button>' : `<button class="button secondary" data-action="record-death" ${attrs}>登记死亡</button>`}</footer>`, animal.icon || 'fish');
   hydratePhotos(overlay, photos);
 }
 function openResidentDeath(button) {
@@ -492,6 +517,8 @@ const actions = {
   manager: () => openSheet('管理与备份', managerContent(store.data, updateState), 'gear', true),
   confirm: async () => { if (modalBusy || !pendingConfirm) return; const fn = pendingConfirm; pendingConfirm = null; try { await fn(); } catch (error) { pendingConfirm = fn; toast(error.message, true); } },
   record: b => openRecord(b.dataset.type, b.dataset.container),
+  'view-growth': b => openSheet('成长记录', growthPanel(store.data,b.dataset.animal,b.dataset.member), 'test'),
+  'record-growth': b => { const a=store.data.animals.find(a=>a.id===b.dataset.animal); if(a) openRecord('growth',a.containerId,{type:'growth',containerId:a.containerId,details:{animalId:a.id,memberId:b.dataset.member,species:a.species}},true); },
   'choose-record': b => chooseRecord(b.dataset.container),
   'chosen-record': b => openRecord(b.dataset.type, document.getElementById('chooser-container')?.value),
   'edit-record': b => { const r = store.data.records.find(r => r.id === b.dataset.id); if (r) openRecord(r.type, r.containerId, r); },
@@ -513,7 +540,7 @@ const actions = {
   'toggle-filters': () => { view.filtersOpen = !view.filtersOpen; render(); },
   'history-day': b=>{view.historyDay=b.dataset.date;view.historyLimit=100;render();},
   'clear-filters': () => { view.historyDay='';view.filters = emptyFilters(); view.historyLimit = 100; render(); },
-  'more-history': () => { view.historyLimit += 100; render(); },
+  'more-history': () => { view.historyLimit += 100; renderHistoryResults(); },
   'resident-filter': b => { view.residentContainer = b.dataset.id; render(); },
   month: b => { view.month = shiftMonth(view.month, Number(b.dataset.offset)); view.selectedDay = ''; render(); },
   'calendar-day': b => { view.selectedDay = view.selectedDay === b.dataset.date ? '' : b.dataset.date; render(); },
@@ -560,7 +587,7 @@ document.addEventListener('submit', async event => {
 document.addEventListener('input', event => {
   if (event.target.name === 'diaryName') { const count=document.getElementById('diary-name-count'); if(count) { const length=diaryNameLength(event.target.value.trim()); count.textContent=`${length} / ${DIARY_NAME_MAX} 字`; count.classList.toggle('is-error',length>DIARY_NAME_MAX); } }
   if (event.target.name === 'countValue' && event.target.closest('[data-form="animal"]')) event.target.closest('form').dataset.quantityEdited = 'true';
-  if (event.target.dataset.filterField === 'search') { view.filters.search = event.target.value;view.historyDay=''; view.historyLimit = 100; clearTimeout(searchTimer); searchTimer = setTimeout(render, 160); }
+  if (event.target.dataset.filterField === 'search') updateHistorySearch(event.target, event.isComposing || searchComposing);
 });
 document.addEventListener('change', async event => {
   const field = event.target;
@@ -588,7 +615,7 @@ document.addEventListener('change', async event => {
       }
     }
     else if (field.dataset.photoUpload) await uploadPhotos(field);
-    else if (field.dataset.filterField && field.dataset.filterField !== 'search') { view.filters[field.dataset.filterField] = field.value;view.historyDay=''; view.historyLimit = 100; render(); } // # 搜索由 input 更新，失焦不重建正在点击的记录按钮。
+    else if (field.dataset.filterField && field.dataset.filterField !== 'search') { view.filters[field.dataset.filterField] = field.value;view.historyDay=''; view.historyLimit = 100; renderHistoryResults(); } // # 搜索由 input 更新，失焦不重建正在点击的记录按钮。
     else if (field.id === 'import-file') { const file = field.files[0]; field.value = ''; await importFile(file); }
     else if (field.closest('#record-form')?.dataset.type === 'add' && ['inventoryAnimalId', 'containerId'].includes(field.name)) {
       const form = field.closest('form'), cid = form.elements.containerId.value;
@@ -597,6 +624,7 @@ document.addEventListener('change', async event => {
       const species = field.name === 'inventoryAnimalId' && animal ? animal.species : form.elements.species.value;
       document.getElementById('addition-species-fields').outerHTML = additionSpeciesFields(store.data, cid, recordDraft, chosen, species);
     }
+    else if (field.closest('#record-form')?.dataset.type === 'growth' && field.name === 'containerId') { document.getElementById('growth-target-fields').outerHTML = growthTargetFields(store.data,field.value,null); }
     else if (field.closest('#record-form')?.dataset.type === 'death' && ['animalId', 'memberId', 'containerId'].includes(field.name)) {
       const form = field.closest('form'), cid = form.elements.containerId.value;
       const selected = field.name === 'containerId' ? '' : form.elements.animalId.value;

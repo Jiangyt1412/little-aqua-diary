@@ -59,10 +59,9 @@ function fitTimelineContents(viewport){
   let last=-Infinity,previous=null;
   ticks.forEach((tick,i)=>{const x=TIMELINE_PAD+Number(tick.dataset.position)*(width-2*TIMELINE_PAD);const show=i===0||i===ticks.length-1||x-last>=46;tick.style.visibility=show?'visible':'hidden';if(show){if(i===ticks.length-1&&x-last<46&&previous)previous.style.visibility='hidden';last=x;previous=tick;}});
 }
-// # 空间足够时让图表底边避开固定底栏；短屏保留自然页面滚动，不把图表压成一条。
+// # 时间轴完整展开高度，纵向手势交给页面，只保留横向查看时间的滚动。
 export function fitTimelineViewports(root){
-  const nav=document.querySelector('.bottom-nav'),bottom=nav&&getComputedStyle(nav).display!=='none'?nav.getBoundingClientRect().top:innerHeight;
-  root.querySelectorAll('[data-timeline-day]').forEach(el=>{if(!el.isConnected)return;fitTimelineContents(el);const top=el.getBoundingClientRect().top+(el.closest('.page-swipe-layer')?0:scrollY),available=Math.floor(Math.min(innerHeight*.65,bottom-top-12));el.style.maxHeight=available>=160?`${available}px`:'';});
+  root.querySelectorAll('[data-timeline-day]').forEach(el=>{if(!el.isConnected)return;fitTimelineContents(el);el.style.removeProperty('max-height');});
 }
 export function positionTimelines(root,positions=new Map()){
   fitTimelineViewports(root);

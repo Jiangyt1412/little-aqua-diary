@@ -1,5 +1,6 @@
 // # 原生像素形象延续审核稿 03；新增形象为外观示意，用户可自行选择。
 const templates = [
+  { id: 'guppy-firecloud', name: '火烧云孔雀鱼', species: '孔雀鱼 · 火烧云', icon: 'fish' },
   {
     "id": "parrot",
     "name": "粉色鹦鹉鱼",
@@ -80,10 +81,10 @@ export const PET_GROUPS = [
   { id: 'fish', label: '鱼' },
   { id: 'shrimp', label: '虾' }
 ].map(group => {
-  const order=['parrot','angel','goby','tetra-red','tetra-purple','tetra-yellow','tetra-green','tetra-blue','crucian','guppy-gold'];
+  const order=['parrot','angel','goby','tetra-red','tetra-purple','tetra-yellow','tetra-green','tetra-blue','crucian','guppy-gold','guppy-firecloud'];
   const entries = templates.filter(pet => pet.icon === group.id).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id)), families = new Map();
   for (const pet of entries) {
-    const family = pet.id.startsWith('tetra-') ? 'tetra' : pet.id;
+    const family = pet.id.startsWith('tetra-') ? 'tetra' : pet.id.startsWith('guppy-') ? 'guppy' : pet.id;
     if (!families.has(family)) families.set(family, { id: family, templates: [] });
     families.get(family).templates.push(pet);
   }
@@ -91,7 +92,36 @@ export const PET_GROUPS = [
 });
 export const PET_TEMPLATES = PET_GROUPS.flatMap(group => group.templates);
 
+// # 火烧云采用用户于2026-11-14确认的52×44像素稿。
 const bodies = {
+  'guppy-firecloud': `<!-- # Native 52×44 grid; illustration based only on the supplied fish photo, not species or lineage verification. -->
+<!-- # Orange fan tail, pale blue edge, and two stepped fin rays. -->
+<path d="M1 8h3v3h4v3h4v3h5v3h6v8h-6v3h-5v3H8v3H4v3H1z" fill="#b88b70"/>
+<path d="M2 10h2v3h4v3h5v3h5v3h5v4h-5v3h-5v3H8v3H4v3H2z" fill="#df8b5b"/>
+<path d="M4 13h3v3h5v3h5v3h5v3h-7v-3h-5v-3H6v-3H4z" fill="#efa76d"/>
+<path d="M4 19h4v3h6v2h6v2h-7v3H8v3H4z" fill="#cd7350"/>
+<path d="M3 31h5v-3h5v-2h5v2h-5v3H8v3H4v3H2v-3h1z" fill="#ecac77"/>
+<path d="M1 8h2v6H1zm0 7h2v6H1zm0 7h2v7H1zm0 8h2v7h2v3H1z" fill="#b7c8b9"/>
+<path d="M2 11h1v6H2zm0 18h1v6H2z" fill="#e3ddbb"/>
+<!-- # Slender dorsal fin and transparent lower fins. -->
+<path d="M25 20v-4h3v-4h3V9h3v5h3v3h4v4z" fill="#82aaa3"/>
+<path d="M28 18v-3h3v-3h2v4h3v3h4v2H28z" fill="#bbd6c7"/>
+<path d="M29 14h2v4h4v2h-7v-3h1z" fill="#d8dfc5"/>
+<path d="M32 28h4v3h-3v4h-3v-2h1v-4h1zm9-1h2v5h-2v3h-2v-3h1v-3h1z" fill="#a9c5b6"/>
+<!-- # Turquoise back with peach/gold shoulder patches; muted palette matches the app. -->
+<path d="M18 21h7v-3h8v-2h9v2h5v3h4v6h-5v3H34v-2h-8v-2h-8z" fill="#779790"/>
+<path d="M21 22h6v-3h8v-1h7v2h5v3h3v3h-5v2H34v-2h-8v-2h-5z" fill="#8fc6c3"/>
+<path d="M25 21h9v-2h6v2h-6v2h-9zm-5 1h5v2h-5z" fill="#c2e0d5"/>
+<path d="M25 24h10v2h-9zm9-3h4v3h-4z" fill="#71aeb5"/>
+<path d="M36 18h6v2h5v3h3v3h-5v2h-7v-3h-3v-3h1z" fill="#dbb174"/>
+<path d="M37 19h5v2h4v2h-7v2h-3v-3h1z" fill="#efd399"/>
+<path d="M37 25h6v2h-6zm-7 0h5v2h-5z" fill="#d49573"/>
+<path d="M36 20h2v2h-2zm-7 0h2v2h-2zm-4 2h2v2h-2z" fill="#dce6cb"/>
+<path d="M41 27h5v1h-5zm-7-1h3v1h-3z" fill="#edd7ae"/>
+<path d="M43 20h4v4h-4z" fill="#eee0ae"/>
+<path d="M44 21h3v3h-3z" fill="#355951"/>
+<path d="M44 21h1v1h-1z" fill="#fff3d2"/>
+<path d="M49 26h2v1h-2z" fill="#68867c"/>`,
   'parrot': `<g transform="translate(6 6)"><path d="M0 12h5v3h5v8H5v3H0z" fill="#b69fa6"/><path d="M1 14h4v3h5v4H5v3H1z" fill="#dcc4c3"/><path d="M13 10V7h3V3h3v3h3v3h5v4z" fill="#b6a2ac"/><path d="M15 25h13v3h-5v3h-5v-3h-3z" fill="#c1a7b0"/><path d="M9 14h4v-4h15v3h6v3h5v8h-5v3h-6v2H16v-3h-4v-3H9z" fill="#9a9298"/><path d="M12 15h4v-3h12v3h5v3h4v5h-5v3H17v-3h-5z" fill="#e4c4c6"/><path d="M17 15h13v3H17zm3 4h7v3h-7z" fill="#f2decc"/><path d="M15 23h13v3H18v-2h-3z" fill="#c5a7b8"/><path d="M25 20h3v5h-3v-2h-3v-2h3z" fill="#bba4b0"/><rect x="33" y="17" width="4" height="4" fill="#b99c79"/><rect x="34" y="18" width="2" height="2" fill="#3b5951"/><rect x="34" y="18" width="1" height="1" fill="#f4edd4"/><rect x="37" y="23" width="3" height="1" fill="#9d888e"/></g>`,
   'goby': `<g transform="translate(1 8)"><path d="M0 9h6v3h6v8H6v3H0z" fill="#738576"/><path d="M1 11h4v3h5v4H5v3H1z" fill="#b9b8a0"/><path d="M0 14h5v2H0zm3-4h2v3H3zm0 8h5v2H0z" fill="#8e9c84"/><path d="M14 11V7h3V4h5v4h4v4zM29 11V7h7v4h4v3z" fill="#899a7e"/><path d="M9 12h8V9h17v2h9v3h6v8h-4v2H26v-2H14v-2H9z" fill="#65776b"/><path d="M13 13h9v-2h12v2h8v3h5v4h-9v2H27v-2H15v-3h-2z" fill="#a8ae92"/><path d="M25 13h9v2h-9zm-9 2h5v2h-5zm12 3h6v2h-6zm9-4h4v2h-4z" fill="#7e917c"/><path d="M14 18h5v3h-5zm8-4h3v2h-3zm14 5h4v2h-4z" fill="#84917c"/><path d="M34 21h5v3h-2v2h-5v-4h2z" fill="#849a87"/><rect x="41" y="14" width="3" height="3" fill="#d9d0a8"/><rect x="42" y="15" width="2" height="2" fill="#385649"/><path d="M46 20h4v1h-4z" fill="#536f61"/></g>`,
   'turtle': `<g transform="translate(9 0)"><path d="M10 2h4V0h7v3h3v7h-4v3h-9V9H8V4h2z" fill="#688773"/><path d="M13 2h7v3h2v5H12V7h-2V4h3z" fill="#b6bf8d"/><path d="M14 8h8v3h-8z" fill="#dacf96"/><rect x="18" y="4" width="3" height="3" fill="#436458"/><rect x="18" y="4" width="1" height="1" fill="#f0e6b8"/><path d="M5 13H1v3H0v4h4v-2h5zm20 4h4v3h3v4h-4v-2h-5zM7 29H3v4H1v3h5v-3h5zm15 2h5v3h3v3h-5v-3h-6z" fill="#7b967d"/><path d="M9 11h14v3h3v17h-3v3H9v-3H6V15h3z" fill="#6e8a6c"/><path d="M10 13h12v3h3v14h-4v3H10v-3H8V16h2z" fill="#d8cd92"/><path d="M10 16h5v6h-5zm7 0h5v6h-5zM9 24h5v5H9zm8 0h6v5h-6zM12 30h3v2h-3zm5 0h3v2h-3z" fill="#60776a"/><path d="M14 34h3v5h-1v4h-2z" fill="#8ba186"/><path d="M0 19h1v3H0zm3 0h1v3H3zm26 4h1v3h-1zm3-1h1v3h-1z" fill="#b5c39a"/></g>`,
@@ -121,6 +151,7 @@ export function inferPetTemplate(species, icon = 'fish') {
   const text = String(species || '').replace(/\s/g, '');
   const exact = PET_TEMPLATES.find(pet => pet.species.replace(/\s/g, '') === text || pet.name.replace(/\s/g, '') === text);
   if (exact) return exact.id;
+  if (/火烧云/.test(text)) return 'guppy-firecloud';
   if (/孔雀|黄金玻璃猫/.test(text)) return 'guppy-gold';
   if (/虾虎|沙塘鳢/.test(text)) return 'goby';
   if (/鹦鹉/.test(text)) return 'parrot';

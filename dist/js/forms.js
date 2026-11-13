@@ -1,6 +1,7 @@
 // # 常用操作只记时间，编辑表单保留旧版数据；昵称和头像单独编辑。
 import { TYPES, WATER_FIELDS, countLabel, diaryName, diaryNameLength, DIARY_NAME_MAX, orderedContainers, membersFor } from './data.js';
 import { residentDeath, residentLosses, livingAnimal } from './mortality.js';
+import { growthTargetFields } from './growth.js';
 import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
@@ -31,6 +32,7 @@ export function recordForm(data, containerId, type, record) {
     case 'water': fields = `<div class="field-grid">${field('换水量 · L', 'liters', d.liters, number + ' placeholder="如 12"')}${field('或比例 · %', 'percent', d.percent, number + ' max="100" placeholder="如 30"')}</div>`; break;
     case 'observe': fields = textarea('观察', 'text', d.text, '记下发现…') + photoFields(record?.photoIds || []); break;
     case 'test': fields = `<div class="field-grid">${WATER_FIELDS.slice(0, 5).map(([key, label, unit, min, max]) => field(`${label}${unit ? ` · ${unit}` : ''}`, key, d[key], `type="number" inputmode="decimal" step="any" min="${min}" ${max === null ? '' : `max="${max}"`} placeholder="选填"`)).join('')}</div><details class="extra-fields"><summary>其他参数</summary><div class="field-grid">${WATER_FIELDS.slice(5).map(([key, label, unit, min]) => field(`${label} · ${unit}`, key, d[key], `type="number" inputmode="decimal" step="any" min="${min}"`)).join('')}</div></details>`; break;
+    case 'growth': fields = growthTargetFields(data, containerId, record) + `<div class="field-grid">${field('体重 · g', 'weightGrams', d.weightGrams, number + ' placeholder="选填"')}${field('背甲直线长度 · cm', 'lengthCm', d.lengthCm, number + ' placeholder="选填"')}</div><p class="form-note">至少填写一项。长度统一记录背甲直线长度，不含头尾。</p>`; break;
     case 'death': fields = deathSpeciesFields(data, containerId, record) + textarea('死亡原因 · 选填', 'cause', d.cause, '如观察到的症状；不确定时可填写原因不明'); break;
     case 'add': fields = additionSpeciesFields(data, containerId, record) + field('新增数量 · 只', 'quantity', d.quantity, record?.id && !record.inventoryEffect ? text + ' required' : 'type="number" min="1" step="1" inputmode="numeric" required') + `<details class="extra-fields"><summary>体长与来源</summary>${field('体长', 'length', d.length, text)}${field('来源', 'source', d.source, text)}</details>`; break;
     case 'medication': case 'salt': fields = field('名称', 'name', d.name ?? (type === 'salt' ? '盐' : ''), text + ' required') + field('剂量', 'dose', d.dose, text + ' required placeholder="如 20 g、5 ml"'); break;
@@ -67,16 +69,25 @@ export function collectRecord(form, original, photoIds = []) {
   // # 时间控件只显示到分钟；未改时间时保留旧记录的秒和毫秒，避免保存文字后重排。
   const timestamp = original?.timestamp && date.getTime() === new Date(localDateTime(original.timestamp)).getTime() ? original.timestamp : date.toISOString();
   const details = original?.type === type ? { ...original.details } : {};
-  const ignored = new Set(['type', 'containerId', 'timestamp', 'notes', 'photo-file', 'inventoryAnimalId']);
+  const ignored = new Set(['type', 'containerId', 'timestamp', 'notes', 'photo-file', 'inventoryAnimalId', 'growthTarget']);
   if (type === 'death') { delete details.animalId; delete details.memberId; }
   if (type === 'water') { delete details.liters; delete details.percent; }
+  if (type === 'growth') { delete details.weightGrams; delete details.lengthCm; }
   for (const [key, value] of fd) if (!ignored.has(key) && typeof value === 'string') {
     if (value.trim()) details[key] = value.trim(); else delete details[key];
   }
-  for (const key of ['liters', 'percent', ...WATER_FIELDS.map(f => f[0])]) if (details[key] !== undefined) details[key] = Number(details[key]);
+  for (const key of ['liters', 'percent', 'weightGrams', 'lengthCm', ...WATER_FIELDS.map(f => f[0])]) if (details[key] !== undefined) details[key] = Number(details[key]);
   if (type === 'test' && !WATER_FIELDS.some(([key]) => details[key] !== undefined)) throw new Error('请填写至少一项检测结果。');
   if (type === 'observe' && !details.text && !photoIds.length) throw new Error('写一段观察，或添加照片。');
   if (type === 'death') details.quantity = Number(details.quantity);
+  if (type === 'growth') {
+    let target; try { target=JSON.parse(String(fd.get('growthTarget'))); } catch { throw new Error('请选择测量对象。'); }
+    if (!Array.isArray(target) || target.length!==2 || target.some(v=>typeof v!=='string' || !v)) throw new Error('请选择测量对象。');
+    [details.animalId,details.memberId]=target;
+    const option=form.elements.growthTarget.selectedOptions[0];
+    details.species=option.dataset.species || ''; details.residentName=option.dataset.residentName || '';
+    if (!['weightGrams','lengthCm'].some(k=>details[k]!==undefined)) throw new Error('请填写体重或背甲长度。');
+  }
   if (type === 'add' && form.dataset.inventoryLinked === 'true') details.quantity = String(additionQuantity(details.quantity));
   return { type, containerId: fd.get('containerId'), timestamp, details, notes: String(fd.get('notes') || '').trim(), ...(photoIds.length ? { photoIds: [...photoIds] } : {}) };
 }

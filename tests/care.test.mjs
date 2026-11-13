@@ -41,5 +41,5 @@ test('新名称上限20可见字，旧24字原样可读，组合Emoji不按UTF16
  const d=diary();d.settings.diaryName='鱼'.repeat(24);assert.equal(validateData(d).settings.diaryName,d.settings.diaryName);d.settings.diaryName='鱼'.repeat(25);assert.throws(()=>validateData(d),/名称/);
 });
 test('形象选择中五种颜色共享独立分组，鱼型不混入颜色组',()=>{
- const fish=PET_GROUPS.find(g=>g.id==='fish'),family=fish.families.find(f=>f.id==='tetra');assert.deepEqual(family.templates.map(p=>p.id),['tetra-red','tetra-purple','tetra-yellow','tetra-green','tetra-blue']);assert.ok(fish.families.filter(f=>f.id!=='tetra').every(f=>f.templates.length===1));assert.deepEqual(fish.families.flatMap(f=>f.templates).map(p=>p.id),fish.templates.map(p=>p.id));
+ const fish=PET_GROUPS.find(g=>g.id==='fish'),family=fish.families.find(f=>f.id==='tetra');assert.deepEqual(family.templates.map(p=>p.id),['tetra-red','tetra-purple','tetra-yellow','tetra-green','tetra-blue']);assert.deepEqual(fish.families.find(f=>f.id==='guppy').templates.map(p=>p.id),['guppy-gold','guppy-firecloud']);assert.ok(fish.families.filter(f=>!['tetra','guppy'].includes(f.id)).every(f=>f.templates.length===1));assert.deepEqual(fish.families.flatMap(f=>f.templates).map(p=>p.id),fish.templates.map(p=>p.id));
 });

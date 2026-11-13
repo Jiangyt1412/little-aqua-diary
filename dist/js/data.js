@@ -38,6 +38,7 @@ export const TYPES = {
   salt: { label: '加盐', icon: 'salt', color: 'gold' },
   equipment: { label: '设备维护', icon: 'gear', color: 'gray' },
   observe: { label: '观察', icon: 'eye', color: 'coral' },
+  growth: { label: '成长测量', icon: 'test', color: 'mint' },
   custom: { label: '自定义事件', icon: 'pen', color: 'gray' }
 };
 export const WATER_FIELDS = [
@@ -143,6 +144,13 @@ export function validateData(input) {
       for (const key of ['animalId', 'memberId']) if (r.details[key] !== undefined && (!validText(r.details[key],150) || !r.details[key])) fail('死亡登记关联无效');
       if (r.details.memberId && (!r.details.animalId || Number(r.details.quantity) !== 1)) fail('个体死亡登记无效');
       if (r.details.cause !== undefined && !validText(r.details.cause,5000)) fail('死亡原因无效');
+    }
+    // # 成长记录增加可选详情字段，不迁移或重写既有居民和照片。
+    if (r.type === 'growth') {
+      for (const key of ['animalId','memberId']) if (!validText(r.details[key],150) || !r.details[key]) fail('成长记录需要明确个体');
+      textFields(r.details,['species','residentName']);
+      const measures=['weightGrams','lengthCm'].filter(key=>r.details[key]!==undefined);
+      if (!measures.length || measures.some(key=>typeof r.details[key]!=='number' || !Number.isFinite(r.details[key]) || r.details[key]<=0)) fail('成长测量需要至少一项正数');
     }
     if (r.photoIds !== undefined && (!Array.isArray(r.photoIds) || r.photoIds.length > 3 || new Set(r.photoIds).size !== r.photoIds.length || r.photoIds.some(id => !validText(id, 150) || !/^[a-zA-Z0-9_-]{1,150}$/.test(id)))) fail('照片引用无效');
     if (r.type === 'observe' && (!(validText(r.details.text) && r.details.text.trim()) && !r.photoIds?.length)) fail('观察内容或照片为空');

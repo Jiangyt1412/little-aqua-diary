@@ -35,6 +35,7 @@ export function recordSummary(record) {
     case 'topup': return d.liters ? `${d.liters} L` : '';
     case 'siphon': return [d.area, d.withWater ? '同时换水' : ''].filter(Boolean).join(' · ');
     case 'test': return WATER_FIELDS.filter(([key]) => d[key] !== undefined && d[key] !== '').map(([key, label, unit]) => `${label} ${d[key]}${unit ? ` ${unit}` : ''}`).join(' · ');
+    case 'growth': return [d.residentName || d.species, d.weightGrams !== undefined ? `${d.weightGrams} g` : '', d.lengthCm !== undefined ? `背甲长 ${d.lengthCm} cm` : ''].filter(Boolean).join(' · ');
     case 'death': return `${d.species || '生物'} · 死亡 ${d.quantity || ''} 只${d.cause ? ' · ' + d.cause : ''}`;
     case 'add': return [d.species, d.quantity, d.length, d.source ? `来自 ${d.source}` : ''].filter(Boolean).join(' · ');
     case 'medication': case 'salt': return [d.category, d.name, d.dose].filter(Boolean).join(' · ');
@@ -45,14 +46,19 @@ export function recordSummary(record) {
 }
 export function filterRecords(data, filters) {
   const names = Object.fromEntries(data.containers.map(c => [c.id, c.name]));
-  const query = (filters.search || '').trim().toLowerCase();
+  // # 按可见资料搜索；统一全角/半角与大小写，多词可分别命中缸名、行为和备注。
+  const normalized = value => String(value ?? '').normalize('NFKC').toLowerCase();
+  const queries = normalized(filters.search).trim().split(/\s+/).filter(Boolean);
   return data.records.filter(r => {
     if (filters.container && filters.container !== r.containerId) return false;
     if (filters.type && filters.type !== r.type) return false;
     const date = localDate(r.timestamp);
     if (filters.from && date < filters.from) return false;
     if (filters.to && date > filters.to) return false;
-    return !query || [names[r.containerId], TYPES[r.type]?.label, recordSummary(r), r.notes, JSON.stringify(r.details)].join(' ').toLowerCase().includes(query);
+    const animal = data.animals?.find(a => a.id === r.details?.animalId);
+    const member = animal?.members?.find(m => m.id === r.details?.memberId);
+    const text = normalized([names[r.containerId], TYPES[r.type]?.label, recordSummary(r), r.notes, date, timeLabel(r.timestamp), animal?.species, member?.name, ...Object.values(r.details || {}).filter(v => typeof v === 'string' || typeof v === 'number')].join(' '));
+    return queries.every(query => text.includes(query));
   }).sort(newestFirst);
 }
 export function statistics(data, now = new Date()) {
