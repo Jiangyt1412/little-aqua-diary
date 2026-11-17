@@ -7,6 +7,25 @@ export function growthRecords(data, animalId, memberId) {
   return data.records.filter(r => r.type === 'growth' && r.details.animalId === animalId && r.details.memberId === memberId)
     .sort((a,b) => Date.parse(a.timestamp) - Date.parse(b.timestamp) || Date.parse(a.createdAt) - Date.parse(b.createdAt));
 }
+// # 两项分别回溯最新有效实测值，不把补记、空缺或其他个体当作当前数据。
+export function latestGrowth(data, animalId, memberId, now = new Date()) {
+  const latest = {};
+  for (const record of growthRecords(data,animalId,memberId)) {
+    if (Date.parse(record.timestamp) > now.getTime()) continue;
+    for (const key of ['weightGrams','lengthCm']) {
+      const value=record.details[key];
+      if (Number.isFinite(value) && value>0) latest[key]={value,timestamp:record.timestamp,recordId:record.id};
+    }
+  }
+  return latest;
+}
+export function latestGrowthMarkup(data, animalId, member, now = new Date()) {
+  const latest=latestGrowth(data,animalId,member.id,now);
+  return `<span class="latest-growth" aria-label="最近测量"><span class="latest-growth-title">最近测量</span>${[['weightGrams','体重','g'],['lengthCm','背甲长','cm']].map(([key,label,unit])=>{
+    const point=latest[key], day=point&&localDate(point.timestamp);
+    return `<span class="latest-growth-item" data-measure="${key}"><span>${label}</span><strong>${point?`${shortNumber(point.value)} ${unit}`:'未记录'}</strong>${point?`<time datetime="${e(point.timestamp)}" title="${e(day)} 测量">${e(day)}</time>`:''}</span>`;
+  }).join('')}${!latest.lengthCm && member.length?`<span class="growth-legacy">资料体长：${e(member.length)}</span>`:''}</span>`;
+}
 export function growthTargetFields(data, containerId, record) {
   const d = record?.details || {}, selected = d.animalId && d.memberId ? JSON.stringify([d.animalId,d.memberId]) : '';
   const choices = data.animals.filter(a => a.containerId === containerId && isTurtle(a)).flatMap(a => membersFor(a).map((m,i) => ({value:JSON.stringify([a.id,m.id]),label:`${a.species} · ${m.name || `居民 ${i+1}`}`,species:a.species,name:m.name || `居民 ${i+1}`})));

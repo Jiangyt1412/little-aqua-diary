@@ -1,12 +1,12 @@
 // # 应用协调层：本地事务、照片草稿、简化导航和旧备份兼容。
 import { DiaryStore, STORAGE_KEY, TYPES, uid, validateData, membersFor, isBlackShrimp, seedData, diaryName, diaryNameLength, checkedDiaryName, DIARY_NAME_MAX, countLabel, orderedContainers, moveContainer } from './data.js';
-import { escapeHTML as e, localDate, timeLabel, downloadFile, csvText, shiftMonth } from './logic.js';
+import { escapeHTML as e, localDate, downloadFile, csvText, shiftMonth } from './logic.js';
 import { icon } from './art.js';
 import { homePage, historyPage, historyResults, residentsPage, tankPage, shell, NAV, managerContent, tasksPanel, petGallery, updatePanel } from './ui.js';
 import { recordForm, collectRecord, containerForm, animalForm, countFields, memberForm, photoFields, additionSpeciesFields, reminderForm, pauseForm, diaryNameForm, deathSpeciesFields } from './forms.js';
 import { PhotoStore, preparePhoto, prepareRestore, hydratePhotos, MAX_BACKUP_BYTES } from './media.js';
 import { editAvatar } from './avatar-crop.js';
-import { isTurtle, growthPanel, growthTargetFields, validateGrowthRecord } from './growth.js'; // # 个体测量与曲线共用记录。
+import { isTurtle, growthPanel, growthTargetFields, validateGrowthRecord, latestGrowthMarkup } from './growth.js'; // # 个体测量与曲线共用记录。
 import { residentDeath, residentLosses, validateResidentDeath } from './mortality.js'; // # 死亡登记与居民共用记录来源。
 import { speciesGroups, saveResidentOrder, CLEAN_RECORDS_COPY, START_EMPTY_COPY } from './species.js';
 import { positionTimelines, fitTimelineViewports } from './timeline.js';
@@ -31,7 +31,6 @@ const view = { page: 'home', tankId: '', month: localDate().slice(0, 7), selecte
 const app = document.getElementById('app'), overlay = document.getElementById('overlay-root');
 const sheetLayout = installSheetLayout(overlay,{onResize:()=>fitTimelineViewports(app)});
 let pendingConfirm = null, focusBeforeDialog = null, toastTimer, searchTimer, recordDraft = null, photoDraft = null, modalBusy = false, undoRecordId = null;
-const quickTapTimes = new Map();
 let afterCreatingContainer = null, reminderContainerId = '';
 const reminderScrolls = new Map();
 const updateState = { phase: 'idle', latest: null, error: '', progress: '' };
@@ -281,22 +280,10 @@ async function saveWithPhotos(form, mutator, message, afterSave) {
   finally { savingState(false); }
   render(); if (afterSave) afterSave(); else closeSheet(); toast(message);
 }
-function quickRecord(type, cid, reminderId = '') {
-  if (!ensureContainers()) return;
-  const key = `${cid}:${type}`, now = Date.now();
-  if (now - (quickTapTimes.get(key) || 0) < 900) return;
-  quickTapTimes.set(key, now);
-  const timestamp = new Date().toISOString(), id = uid('record');
-  store.commit(data => { if (!data.containers.some(c => c.id === cid)) throw new Error('这个缸已被移除。'); if (reminderId && !data.settings.reminders.some(r => r.id === reminderId && taskState(data,r).state !== 'paused' && r.containerId === cid && r.type === type)) throw new Error('提醒已暂停或移除。'); data.records.push({ id, type, containerId: cid, timestamp, details: {}, notes: '', createdAt: timestamp, updatedAt: timestamp, ...(reminderId ? { reminderId } : {}) }); });
-  render();
-  if (reminderId) openReminders(reminderContainerId);
-  else if (overlay.querySelector('dialog')) closeSheet();
-  toast(`${TYPES[type].label} · ${timeLabel(timestamp)}`, false, id);
-}
+// # 每类事件都先确认发生时间，快捷入口与提醒完成共用同一保存流程。
 function openRecord(type = 'observe', containerId, record, forceForm = false, reminderId = '') {
   if (!ensureContainers(id => openRecord(type, id, record, forceForm, reminderId))) return;
   const cid = containerId || orderedContainers(store.data)[0].id;
-  if (!record && !forceForm && ['feed', 'siphon', 'topup'].includes(type)) return quickRecord(type, cid);
   const name = store.data.containers.find(c => c.id === cid)?.name || '';
   if (!openSheet(`${TYPES[type].label} · ${name}`, recordForm(store.data, cid, type, record), TYPES[type].icon)) return;
   if (reminderId) { document.getElementById('record-form').dataset.reminder = reminderId; reminderBackButton(); }
@@ -399,7 +386,7 @@ function viewMember(button, original = false) {
   const death = residentDeath(store.data, animal.id, member.id), name = member.name || animal.species;
   const attrs = `data-animal="${e(animal.id)}" data-member="${e(member.id)}"`;
   const photoId = original && member.avatarSourceId ? member.avatarSourceId : member.avatarId;
-  openSheet(name, `<div class="resident-profile"><div class="avatar-viewer">${photoId ? `<img data-photo-id="${e(photoId)}" alt="${e(name)}的${original ? '原图' : '头像'}">` : petIcon(member.templateId || animal.templateId || inferPetTemplate(animal.species,animal.icon), 180)}</div>${member.avatarSourceId ? `<button class="text-link" data-action="${original ? 'view-member' : 'view-avatar-original'}" ${attrs}>${original ? '查看头像' : '查看完整照片'}</button>` : ''}<p>${e(animal.species)}${member.length ? ` · ${e(member.length)}` : ''}</p>${isTurtle(animal) ? `<button class="button secondary" data-action="view-growth" ${attrs}>成长记录与曲线</button>` : ''}${death ? `<div class="resident-memorial"><strong>已故 · ${e(localDate(death.timestamp))}</strong><p>${e(death.details.cause || '原因未填写')}</p><button class="text-link" data-action="edit-record" data-id="${e(death.id)}">修改死亡登记</button></div>` : ''}</div><footer class="sheet-footer"><button class="button secondary" data-action="edit-member" ${attrs}>${icon('pen',16)}编辑居民</button>${death ? '<button class="button primary" data-action="close">完成</button>' : `<button class="button secondary" data-action="record-death" ${attrs}>登记死亡</button>`}</footer>`, animal.icon || 'fish');
+  openSheet(name, `<div class="resident-profile"><div class="avatar-viewer">${photoId ? `<img data-photo-id="${e(photoId)}" alt="${e(name)}的${original ? '原图' : '头像'}">` : petIcon(member.templateId || animal.templateId || inferPetTemplate(animal.species,animal.icon), 180)}</div>${member.avatarSourceId ? `<button class="text-link" data-action="${original ? 'view-member' : 'view-avatar-original'}" ${attrs}>${original ? '查看头像' : '查看完整照片'}</button>` : ''}<p>${e(animal.species)}${!isTurtle(animal) && member.length ? ` · ${e(member.length)}` : ''}</p>${isTurtle(animal) ? latestGrowthMarkup(store.data,animal.id,member) : ''}${isTurtle(animal) ? `<button class="button secondary" data-action="view-growth" ${attrs}>成长记录与曲线</button>` : ''}${death ? `<div class="resident-memorial"><strong>已故 · ${e(localDate(death.timestamp))}</strong><p>${e(death.details.cause || '原因未填写')}</p><button class="text-link" data-action="edit-record" data-id="${e(death.id)}">修改死亡登记</button></div>` : ''}</div><footer class="sheet-footer"><button class="button secondary" data-action="edit-member" ${attrs}>${icon('pen',16)}编辑居民</button>${death ? '<button class="button primary" data-action="close">完成</button>' : `<button class="button secondary" data-action="record-death" ${attrs}>登记死亡</button>`}</footer>`, animal.icon || 'fish');
   hydratePhotos(overlay, photos);
 }
 function openResidentDeath(button) {
@@ -506,7 +493,7 @@ const actions = {
   'pause-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r) reminderEditor('暂停提醒', pauseForm({...r,status:taskState(store.data,r).status}), 'pause'); },
   'resume-reminder': b => finishReminder(data => resumeTask(data, b.dataset.id), '提醒已恢复'),
   'delete-reminder': b => confirmAction('删除提醒？', '已有维护记录会保留。', () => finishReminder(data => { data.settings.reminders = data.settings.reminders.filter(r => r.id !== b.dataset.id); }, '提醒已删除'), '删除提醒'),
-  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && taskState(store.data,r).state !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) r.type === 'water' ? openRecord(r.type, r.containerId, null, true, r.id) : quickRecord(r.type, r.containerId, r.id); },
+  'complete-reminder': b => { const r = store.data.settings.reminders.find(r => r.id === b.dataset.id); if (r && taskState(store.data,r).state !== 'paused' && ['feed', 'siphon', 'water', 'topup'].includes(r.type)) openRecord(r.type, r.containerId, null, true, r.id); },
   'export-calendar': () => { downloadFile('水族维护提醒.ics', tasksCalendar(store.data, TYPES), 'text/calendar'); toast('日历文件已导出'); },
   'pet-gallery': () => openSheet('居民形象', petGallery(), 'fish'),
   'use-pet-template': b => openNewAnimal('', b.dataset.template),
@@ -536,7 +523,7 @@ const actions = {
     }, effect ? '记录与居民已同步删除' : r.type === 'death' && r.details.animalId ? '死亡登记已删除，居民状态已恢复' : '已删除'), '确定删除', effect ? `<button class="text-link" data-action="delete-record-only" data-id="${e(r.id)}">仅删除记录，保留居民</button>` : '');
   },
   'delete-record-only': b => commitAndFinish(d => deleteDiaryRecord(d, b.dataset.id, true), '记录已删除，居民保留'),
-  'undo-record': () => { const id = undoRecordId; if (!id) return; const r = store.data.records.find(r => r.id === id); store.commit(d => { d.records = d.records.filter(r => r.id !== id); }); if (r) quickTapTimes.delete(`${r.containerId}:${r.type}`); render(); toast('已撤销'); },
+  'undo-record': () => { const id = undoRecordId; if (!id) return; store.commit(d => { d.records = d.records.filter(r => r.id !== id); }); render(); toast('已撤销'); },
   'toggle-filters': () => { view.filtersOpen = !view.filtersOpen; render(); },
   'history-day': b=>{view.historyDay=b.dataset.date;view.historyLimit=100;render();},
   'clear-filters': () => { view.historyDay='';view.filters = emptyFilters(); view.historyLimit = 100; render(); },

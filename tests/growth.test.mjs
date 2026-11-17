@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {seedData,membersFor,validateData} from '../dist/js/data.js';
-import {isTurtle,growthRecords,growthPanel,growthTargetFields,validateGrowthRecord} from '../dist/js/growth.js';
+import {isTurtle,latestGrowth,latestGrowthMarkup,growthRecords,growthPanel,growthTargetFields,validateGrowthRecord} from '../dist/js/growth.js';
 import {recordForm} from '../dist/js/forms.js';
 process.env.TZ='Asia/Shanghai';
 function fixture(){const d=seedData();d.containers=[{id:'tank',name:'演示龟缸',type:'tank'},{id:'pond',name:'新龟缸',type:'tank'}];d.animals=[{id:'turtle',species:'小青龟',containerId:'tank',countType:'exact',countValue:'2',templateId:'turtle'}];d.animals[0].members=membersFor(d.animals[0]);d.animals[0].members[0].name='演示小青';return d;}
@@ -40,4 +40,21 @@ test('只有乌龟进入测量选择；表单固定单位、明确个体，空�
  assert.equal(isTurtle(data.animals[0]),true);assert.equal(isTurtle(data.animals[1]),false);
  const form=recordForm(data,'tank','growth');assert.match(form,/name="growthTarget" required/);assert.match(form,/体重 · g/);assert.match(form,/背甲直线长度 · cm/);assert.doesNotMatch(growthTargetFields(data,'tank'),/孔雀鱼/);
  const empty=growthPanel(data,'turtle','turtle_member_1');assert.doesNotMatch(empty,/<svg/);assert.match(empty,/记录第一次测量/);
+});
+
+// # 卡片摘要按每项最新实测取值，编辑、删除和补记不产生过期副本。
+test('最近体重与长度分别取值，补记不覆盖新值，删除与编辑自动回溯',()=>{
+ const data=fixture();data.records=[measurement('both','01',{weightGrams:60,lengthCm:4.3}),measurement('length','07',{lengthCm:4.5}),measurement('weight','12',{weightGrams:65}),measurement('other','13',{weightGrams:180,lengthCm:9},'turtle_member_2'),measurement('future','20',{weightGrams:200})];
+ const get=()=>latestGrowth(data,'turtle','turtle_member_1',now);
+ assert.equal(get().weightGrams.value,65);assert.equal(get().lengthCm.value,4.5);assert.equal(get().lengthCm.recordId,'length');
+ data.records.push(measurement('backfill','03',{weightGrams:62}));assert.equal(get().weightGrams.value,65);
+ data.records.find(r=>r.id==='weight').details.weightGrams=66;assert.equal(get().weightGrams.value,66);
+ data.records=data.records.filter(r=>r.id!=='weight');assert.equal(get().weightGrams.value,62);
+ data.animals[0].containerId='pond';assert.equal(get().lengthCm.value,4.5);
+ assert.deepEqual(latestGrowth(validateData(JSON.parse(JSON.stringify(data))),'turtle','turtle_member_1',now),get());
+});
+test('未测量不显示零；旧资料体长明确标注且不会覆盖实测背甲长',()=>{
+ const data=fixture(),member={...data.animals[0].members[0],length:'旧记录5cm'};
+ const empty=latestGrowthMarkup(data,'turtle',member,now);assert.match(empty,/体重/);assert.match(empty,/未记录/);assert.match(empty,/资料体长：旧记录5cm/);assert.doesNotMatch(empty,/>0 g/);
+ data.records=[measurement('length','07',{lengthCm:4.5})];const html=latestGrowthMarkup(data,'turtle',member,now);assert.match(html,/4.5 cm/);assert.match(html,/2026-11-07/);assert.doesNotMatch(html,/旧记录5cm/);
 });

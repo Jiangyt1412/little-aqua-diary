@@ -2,7 +2,7 @@
 import { TYPES, WATER_FIELDS, countLabel, diaryName, diaryNameLength, DIARY_NAME_MAX, orderedContainers, membersFor } from './data.js';
 import { residentDeath, residentLosses, livingAnimal } from './mortality.js';
 import { growthTargetFields } from './growth.js';
-import { escapeHTML as e, localDateTime, timeLabel } from './logic.js';
+import { escapeHTML as e, localDateTime } from './logic.js';
 import { icon, animalIcon } from './art.js';
 import { additionQuantity } from './inventory.js';
 import { PET_GROUPS, PET_TEMPLATES, petIcon, inferPetTemplate } from './pets.js';
@@ -39,8 +39,9 @@ export function recordForm(data, containerId, type, record) {
     case 'equipment': fields = selectField('维护项目', 'task', ['过滤器清洗', '水妖精清洗', '水泵维护', '气石更换', '加热棒调整', '灯具调整', '其他'].map(v => [v, v]), d.task || '过滤器清洗'); break;
     default: fields = field('事件', 'title', d.title, text + ' required');
   }
+  // # 发生时间始终可见；每次打开新表单时取当前时间，保留精确时间用于原样保存。
   const timestamp = record?.timestamp || new Date().toISOString();
-  return `<form id="record-form" data-form="record" data-type="${e(type)}" data-inventory-linked="${type === 'add' && (!record?.id || !!record.inventoryEffect)}" data-id="${e(record?.id || '')}"><input type="hidden" name="type" value="${e(type)}">${fields}<details class="record-meta" ${record?.id || simple ? 'open' : ''}><summary>${icon('clock', 14)}${timeLabel(timestamp)}${icon('down', 11)}</summary>${field('时间', 'timestamp', localDateTime(timestamp), 'type="datetime-local" required')}${selectField('容器', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), containerId)}</details>${simple || type === 'observe' ? `<input type="hidden" name="notes" value="${e(record?.notes || '')}">` : textarea('备注', 'notes', record?.notes || '', '选填')}${formFooter(record?.id ? '保存修改' : '保存', record?.id ? `<button type="button" class="button danger-quiet" data-action="delete-record" data-id="${e(record.id)}">${icon('trash', 16)}删除</button>` : '')}</form>`;
+  return `<form id="record-form" data-form="record" data-initial-timestamp="${e(timestamp)}" data-type="${e(type)}" data-inventory-linked="${type === 'add' && (!record?.id || !!record.inventoryEffect)}" data-id="${e(record?.id || '')}"><input type="hidden" name="type" value="${e(type)}">${field('发生时间', 'timestamp', localDateTime(timestamp), 'type="datetime-local" required')}${selectField('容器', 'containerId', orderedContainers(data).map(c => [c.id, c.name]), containerId)}${fields}${simple || type === 'observe' ? `<input type="hidden" name="notes" value="${e(record?.notes || '')}">` : textarea('备注', 'notes', record?.notes || '', '选填')}${formFooter(record?.id ? '保存修改' : '保存', record?.id ? `<button type="button" class="button danger-quiet" data-action="delete-record" data-id="${e(record.id)}">${icon('trash', 16)}删除</button>` : '')}</form>`;
 }
 export function additionSpeciesFields(data, containerId, record, selectedId, species) {
   const d = record?.details || {};
@@ -63,11 +64,16 @@ export function deathSpeciesFields(data, containerId, record, selectedId, member
   if (member && !members.some(m => m.id === member)) memberChoices.push([member, '原个体（已移除）']);
   return `<div id="death-species-fields">${selectField('关联居民', 'animalId', choices, selected)}${selected ? `<input type="hidden" name="species" value="${e(animal?.species || d.species)}">${selectField('个体', 'memberId', memberChoices, member)}` : field('物种', 'species', d.species, 'type="text" maxlength="100" required')} ${field('死亡数量', 'quantity', member ? 1 : d.quantity || 1, `type="number" min="1" step="1" inputmode="numeric" required ${member ? 'readonly' : ''}`)}${selected ? '<p class="form-note">保存后同步居民状态；名字和头像会保留。</p>' : ''}</div>`;
 }
+// # 时间控件显示到分钟；未改时间保留秒和毫秒，修改后按明确选择的分钟保存。
+export function recordTimestamp(value, initialTimestamp) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('请填写有效时间。');
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new Error('请填写有效时间。');
+  return initialTimestamp && date.getTime() === new Date(localDateTime(initialTimestamp)).getTime() ? initialTimestamp : date.toISOString();
+}
 export function collectRecord(form, original, photoIds = []) {
   const fd = new FormData(form), type = String(fd.get('type'));
-  const date = new Date(fd.get('timestamp')); if (!Number.isFinite(date.getTime())) throw new Error('请填写有效时间。');
-  // # 时间控件只显示到分钟；未改时间时保留旧记录的秒和毫秒，避免保存文字后重排。
-  const timestamp = original?.timestamp && date.getTime() === new Date(localDateTime(original.timestamp)).getTime() ? original.timestamp : date.toISOString();
+  const timestamp = recordTimestamp(fd.get('timestamp'), original?.timestamp || form.dataset.initialTimestamp);
   const details = original?.type === type ? { ...original.details } : {};
   const ignored = new Set(['type', 'containerId', 'timestamp', 'notes', 'photo-file', 'inventoryAnimalId', 'growthTarget']);
   if (type === 'death') { delete details.animalId; delete details.memberId; }
